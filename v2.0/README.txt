@@ -4,7 +4,7 @@
     Please refer to IETF LISP drafts for a description of LISP data plane, its acronyms and 
     the data plane functionalities.	
     
-    This is a modified version of OpenLISP (http://www.openlisp.org/) to support new two functions: 
+    This is a modified version of OpenLISP (http://www.openlisp.org/) to support two new functions: 
     LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR). 
 
 
