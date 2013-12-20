@@ -14,5 +14,6 @@
 
 3.  FUNCTION SWITCHING
 
-    A new sysctl variable "net.lisp.function" has been add to OpenLISP to allow switching between 
-    functions. Three available values are xtr, pxtr and rtr		
+    Two new sysctl variables "net.lisp.function" and "net.lisp.xtr_te" have been added to OpenLISP to allow switching between 
+    functions and enable LISP-TE function on xTR. 
+    With "net.lisp.function" there are three available values: xtr, pxtr and rtr		

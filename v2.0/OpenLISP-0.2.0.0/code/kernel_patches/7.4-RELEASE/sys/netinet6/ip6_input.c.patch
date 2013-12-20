@@ -1,0 +1,49 @@
+*** /sys/netinet6/ip6_input.c.original	Mon Aug 22 13:56:12 2011
+--- /sys/netinet6/ip6_input.c	Mon Aug 22 14:06:07 2011
+***************
+*** 66,71 ****
+--- 66,72 ----
+  #include "opt_inet.h"
+  #include "opt_inet6.h"
+  #include "opt_ipsec.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 102,107 ****
+--- 103,114 ----
+  #include <netinet6/scope6_var.h>
+  #include <netinet6/in6_ifattach.h>
+  #include <netinet6/nd6.h>
++ #ifdef LISP 
++ #include <net/lisp/lisp.h> 
++ #include <net/lisp/maptables.h>
++ 
++ #include <netinet6/lisp6/ip6_lisp6.h>                                         
++ #endif /* LISP */  
+  
+  #ifdef IPSEC
+  #include <netipsec/ipsec.h>
+***************
+*** 821,826 ****
+--- 828,846 ----
+  		if (ip6_ipsec_input(m, nxt))
+  			goto bad;
+  #endif /* IPSEC */
++ 
++ #ifdef LISP                                                                   
++ 		/* Check if the packet is LISP encapsulated. If so
++ 		 * it is diverted to the lisp6_input() routine. 
++ 		 */ 
++ 
++ 		 if (lisp_ip6_needdecap(&m, off, nxt))
++ 
++ 			 nxt = lisp6_input(&m, &off, nxt);
++ 
++ 		 else
++ #endif /* LISP */ 
++ 
+  		nxt = (*inet6sw[ip6_protox[nxt]].pr_input)(&m, &off, nxt);
+  	}
+  	return;

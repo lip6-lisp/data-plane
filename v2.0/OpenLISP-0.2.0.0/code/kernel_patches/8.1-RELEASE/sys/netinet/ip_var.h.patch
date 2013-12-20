@@ -1,0 +1,18 @@
+*** /usr/src/sys/netinet/ip_var.h.original	Wed Aug  4 16:52:00 2010
+--- /usr/src/sys/netinet/ip_var.h	Wed Aug  4 16:55:55 2010
+***************
+*** 158,163 ****
+--- 158,170 ----
+  #define IP_ROUTETOIF		SO_DONTROUTE	/* 0x10 bypass routing tables */
+  #define IP_ALLOWBROADCAST	SO_BROADCAST	/* 0x20 can send broadcast packets */
+  
++ #ifdef  LISP
++ #define IP_LISP                 0x40            /* GgX - LISP encapsulated 
++                                                  * Do not check possible 
++                                                  * encapsulation again.
++                                                  */
++ #endif  /* LISP */
++ 
+  /*
+   * mbuf flag used by ip_fastfwd
+   */

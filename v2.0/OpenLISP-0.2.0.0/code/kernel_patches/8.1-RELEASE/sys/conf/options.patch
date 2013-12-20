@@ -1,0 +1,16 @@
+*** /usr/src/sys/conf/options.original	Tue Aug  3 13:38:00 2010
+--- /usr/src/sys/conf/options	Wed Aug  4 15:58:37 2010
+***************
+*** 386,391 ****
+--- 386,396 ----
+  ETHER_SNAP		opt_ef.h
+  INET			opt_inet.h
+  INET6			opt_inet6.h
++ #
++ # OpenLISP Support for LISP (Locator/ID Separation Protocol)
++ #
++ LISP			opt_lisp.h
++ #
+  IPDIVERT
+  IPFILTER		opt_ipfilter.h
+  IPFILTER_DEFAULT_BLOCK	opt_ipfilter.h

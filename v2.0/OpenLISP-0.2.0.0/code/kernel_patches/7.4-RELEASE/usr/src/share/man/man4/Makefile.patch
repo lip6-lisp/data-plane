@@ -1,0 +1,22 @@
+*** /usr/src/share/man/man4/Makefile.original	Wed Aug 24 13:59:38 2011
+--- /usr/src/share/man/man4/Makefile	Wed Aug 24 14:00:54 2011
+***************
+*** 158,163 ****
+--- 158,164 ----
+  	led.4 \
+  	lge.4 \
+  	${_lindev.4} \
++ 	lispintro.4 \
+  	lmc.4 \
+  	lo.4 \
+  	lp.4 \
+***************
+*** 176,181 ****
+--- 177,183 ----
+  	mac_stub.4 \
+  	mac_test.4 \
+  	malo.4 \
++ 	map.4 \
+  	md.4 \
+  	mem.4 \
+  	meteor.4 \

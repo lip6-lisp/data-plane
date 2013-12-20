@@ -1,0 +1,52 @@
+40a41
+> #include "opt_lisp.h"
+76c77,84
+< #endif /* IPSEC */
+---
+> #endif /* IPSEC */i
+> 
+> #ifdef LISP                                                                   
+> #include <net/lisp/lisp.h>                                                    
+> #include <net/lisp/maptables.h>                                               
+>                                                                                
+> #include <netinet/lisp/ip_lisp.h>                                             
+> #endif /* LISP */                                                             
+662a671,681
+> #ifdef LISP                                                                   
+> 	if (lisp_ip_needdecap(&m)) {                                          
+>  		/* GgX - We have a LISP packet.                               
+>  		 */                                                           
+>                                                                                
+> 		lisp_input(m, hlen);                                         
+> 		return;                                                      
+>                                                                              
+>  	};                                                                    
+> #endif /* LISP */                                                             
+> 
+1248a1268,1271
+> #ifdef LISP                                                                   
+> 	int need_lisp_encap = 0;                                              
+> #endif /* LISP */                                                             
+> 
+1265a1289,1301
+> #ifdef LISP                                                                   
+>  	if ( !srcrt && !(need_lisp_encap = lisp_ip_needencap( &m )) ) {       
+> #endif /* LISP */                                                             
+>                                                                                
+> 		 ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));                   
+> 		 if (!srcrt && ia == NULL) {                                
+>  			icmp_error(m, ICMP_UNREACH, ICMP_UNREACH_HOST, 0, 0);   
+>  			return;                                                 
+>  		 }                                                         
+>                                                                                
+> #ifdef LISP                                                                   
+> 	};                                                                     
+> #endif /* LISP */      
+1322c1358,1362
+< 	if (!srcrt && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+---
+> #ifdef LISP                                                                   
+> 	if (!srcrt && !need_lisp_encap && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+> #else                                                                         
+> 	if (!srcrt && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {   
+> #endif /* LISP */    
