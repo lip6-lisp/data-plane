@@ -1,0 +1,24 @@
+*** /usr/src/sys/sys/mbuf.h.original	Wed Aug  4 16:15:57 2010
+--- /usr/src/sys/sys/mbuf.h	Wed Aug  4 16:17:34 2010
+***************
+*** 37,42 ****
+--- 37,43 ----
+  /* XXX: These includes suck. Sorry! */
+  #include <sys/queue.h>
+  #ifdef _KERNEL
++ #include "opt_lisp.h"
+  #include <sys/systm.h>
+  #include <vm/uma.h>
+  #ifdef WITNESS
+***************
+*** 903,908 ****
+--- 904,912 ----
+  #define	PACKET_TAG_IPOPTIONS			27 /* Saved IP options */
+  #define	PACKET_TAG_CARP				28 /* CARP info */
+  #define	PACKET_TAG_IPSEC_NAT_T_PORTS		29 /* two uint16_t */
++ #ifdef LISP
++ #define	PACKET_TAG_MAPSOCKFAM			30 /* mapsock sa family */
++ #endif /* LISP */
+  
+  /* Specific cookies and tags. */
+  

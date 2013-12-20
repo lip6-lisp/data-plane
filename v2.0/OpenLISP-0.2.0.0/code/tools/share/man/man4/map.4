@@ -1,0 +1,280 @@
+.\"/usr/src/share/man/man4/lispintro.4
+.\"
+.\" Copyright (c) 2009-2011 The OpenLISP Project
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Contributors:
+.\"		Luigi Iannone <ggx@openlisp.org>
+.\"
+.\" $Id: map.4 181 2011-09-22 15:54:43Z ggx $
+.\"
+.Dd September 27, 2011
+.Dt MAP 4
+.Os
+.Sh NAME
+.Nm map
+.Nd kernel LISP Cache and LISP database socket API
+.Sh SYNOPSIS
+.In sys/types.h
+.In sys/time.h
+.In sys/socket.h
+.In net/if.h
+.In net/maptable.h
+.Ft int
+.Fn socket PF_MAP SOCK_RAW "int family"
+.Sh DESCRIPTION
+.Nm OpenLISP 
+provides LISP support into the kernel of
+.Fx , as described in 
+.Xr lispintro 4 .
+The kernel maintains a Mapping Information Database (MID), which
+is used in selecting the appropriate RLOCs when
+encapsulating/decapsulating packets.
+.Pp
+A user process (or possibly multiple co-operating processes)
+modifies this Mapping Information Database by sending messages over
+a new special kind of socket. Mapping Information Database
+modifications can only be carried out by the super user.
+.Pp
+The operating system may spontaneously emit messages in response
+to external events, such as receipt of a packet for which no mapping
+is available.
+The message types are described in greater detail below.
+.Pp
+When handling a packet, the kernel will attempt to find
+the most specific EID mapping matching the destination and, when
+necessary, source addresses.
+If there is more then one RLOC in the mapping the actual RLOC used
+for encapsulation is chosen following the rules described in the
+.Va LISP 
+specifications.
+Note, however, that for local mappings, i.e., mappings that are part
+of the database, the flag "i" must be set in order for the RLOC to be
+used. The flag is automatically set by 
+.Nm OpenLISP
+and indicates if the RLOC is the address of a local interface.
+This is to avoid emitting packets with a source address that does
+not belong to the machine.
+If no mapping is found for both source and destination EIDs, or if 
+a 
+.Va negative 
+mapping is found for the destination EID, then the packet
+is handed back to normal IP operation, which may lead to sending the 
+packet, if the EID is routable and a route is available in the IP 
+routing table. 
+If a mapping exists for the source EID in the LISP
+Database, but no mapping is available for the destination EID in the
+LISP cache, the packet is silently dropped and a MISS message is sent
+through the mapping sockets. 
+.Pp
+One opens the channel for passing mapping control messages
+by using the socket call.
+There can be more than one mapping socket open per system.
+.Pp
+Messages are formed by a header followed by a
+number of sockaddrs (of variable length depending on the address
+family) and the RLOC metrics data structure.
+.Pp
+Any messages sent to the kernel are returned, and copies are sent
+to all interested listeners.
+The kernel will provide the process ID for the sender, and the sender 
+may use an additional sequence field to distinguish between
+outstanding messages.
+However, message replies may be lost when kernel buffers are exhausted.
+.Pp
+The kernel may reject certain messages, and will indicate this
+by filling in the
+.Ar map_errno
+field.
+The OpenLISP code returns the following error codes if new mappings
+cannot be installed:
+.Bl -tag -width Ds
+.It ENOBUFS: If insufficient resources were available to install a new mapping.
+.It EEXIST: If the EID-Prefix already exists in the mapping table. 
+.It EINVAL: This error code is returned when the mapping that has been 
+provided is not valid. There are several reason that may generate such
+an error, like for instance the case when the list of RLOC provided for
+a mapping contains replicated addresses, or when a mapping that is
+meant to be installed in the LISP Database does not have any RLOC
+(address) belonging to the system. 
+.El
+.Pp
+A process may avoid the expense of reading replies to
+its own messages by issuing a
+.Xr setsockopt 2
+call indicating that the
+.Dv SO_USELOOPBACK
+option at the
+.Dv SOL_SOCKET
+level is to be turned off.
+A process may ignore all messages from the mapping socket
+by doing a
+.Xr shutdown 2
+system call for further input.
+.Pp
+If a mapping is in use when it is deleted,
+the entry will be marked down and removed from the mapping table,
+but the resources associated with it will not
+be reclaimed until all references to it are released.
+User processes can obtain information about the mapping
+entry for a specific EID by using a
+.Dv MAP_GET
+message.
+.Pp
+The set of defined messages are:
+.Bd -literal
+#define MAPM_ADD	   0x01	 /* Add Map */
+#define MAPM_DELETE	   0x02	 /* Delete Map */
+#define MAPM_CHANGE	   0x03	 /* Change Mapping (not yet implemented) */
+#define MAPM_GET 	   0x04	 /* Get matching mapping */
+#define MAPM_MISS          0x05  /* Lookup Failed  (general case) */
+#define MAPM_MISS_EID      0x06  /* Lookup Failed  and EID returned */
+#define MAPM_MISS_HEADER   0x07  /* Lookup Failed and IP header returned */
+#define MAPM_MISS_PACKET   0x08  /* Lookup Failed  and Packet returned */
+#define MAPM_LSBITS        0x09  /* Locator Status Bits Changed */
+#define MAPM_LOCALSTALE    0x0A  /* Local Map Version is stale */
+#define MAPM_REMOTESTALE   0x0B  /* Remote Map Version is stale */
+./"#define MAPM_NONCEMISMATCH 0x0C  /* Received a mismatching nonce */
+.Ed
+.Pp
+A message header consists of the following:
+.Bd -literal
+struct map_msghdr {
+	uint8_t	 map_msglen;	/* to skip over non-understood messages */
+	uint8_t	 map_version;   /* future binary compatibility */
+	uint16_t map_type;	/* message type */
+
+	uint32_t map_flags;	/* flags, incl. kern & mes., e.g. DONE */
+	uint16_t map_addrs;	/* bitmask identifying sockaddrs in msg */
+        uint16_t map_versioning;/* Mapping Version Number */
+
+        int     map_rloc_count;/* Number of rlocs appended to the msg */
+	pid_t	map_pid;	/* identify sender */
+	int	map_seq;	/* for sender to identify action */
+	int	map_errno;	/* why failed */
+};
+.Ed
+.Pp
+The
+.Dq Li "int map_flags"
+is defined as:
+.Bd -literal
+#define	MAPF_DB	        0x001	/* Mapping is part of the Database */
+#define	MAPF_VERSIONING	0x002	/* Mapping uses Versioning */
+#define	MAPF_LOCBITS	0x004	/* Mapping uses LocStatus bits */
+#define MAPF_STATIC	0x008	/* manually added */
+#define	MAPF_UP		0x010	/* Mapping usable */
+#define	MAPF_ALL	0x020	/* Operation concerns both DB and Cache */
+#define MAPF_EXPIRED    0x040   /* Not used for more than XPGTO time */
+#define MAPF_NEGATIVE   0x080   /* Negative Mapping (no RLOCs forward 
+				 * natively)
+				 */
+#define MAPF_DONE	0x100	/* message confirmed */
+.Ed
+.Pp
+Specifiers for which addresses are present in the messages are:
+.Bd -literal
+#define MAPA_EID	0x1	 /* EID sockaddr present */
+#define MAPA_EIDMASK	0x2	 /* netmask sockaddr present */
+#define MAPA_RLOC	0x4	 /* Locator present */
+.Ed
+.Pp
+If MAPA_RLOC is set, it means that there are "int map_rloc_count"
+pairs of "struct sockaddr"  and  "struct rloc_mtx" (in this order).
+.Pp
+The
+.Dq Li "struct rloc_mtx"
+is as defined as:
+.Bd -literal
+struct rloc_mtx {            /* Metrics associated to the RLOC
+			      * Useful for messages mapping sockets 
+			      */
+        u_int8_t priority;   /* Each RLOC has a priority. 
+			      */
+        u_int8_t weight;     /* Each locator has a weight. 
+			      */
+        u_int16_t flags;     /* Flags concerning specific RLOC.
+			      */
+        u_int32_t mtu;       /* MTU for the specific RLOC.
+                              */
+	struct nonce_type tx_nonce; /* Nonce to be used when sending a
+				     * LISP encapsulated packet.
+				     */
+        struct nonce_type rx_nonce; /* Nonce to be used when receiving a
+				     * LISP encapsulated packet.
+				     */
+};
+.Ed
+.Pp
+The
+.Dq Li "u_int16_t flags"
+is as defined as:
+.Bd -literal
+#define RLOCF_UP        0x01    /* RLOC Status bit . */ 
+#define RLOCF_LIF       0x02    /* RLOC is a local interface.
+				 * This is only valid for local mappings.
+				 */
+#define RLOCF_TXNONCE   0x04    /* RLOC Tx Nonce present. */ 
+#define RLOCF_RXNONCE   0x08    /* RLOC Rx Nonce present. */ 
+.Ed
+.Pp
+A good example of how top use mapping sockets can be found in 
+.Va /usr/src/sbin/map/map.c .
+.Pp
+.Sh SEE Also
+.Xr lispintro 4 ,
+.Xr map 8 ,
+.Xr mapstat 1 .
+.Rs
+.%A "L. Iannone"
+.%T "OpenLISP Implementation Report"
+.%O "draft-iannone-openlisp-implementation-01.txt"
+.Re
+.Rs
+.%A "D. Farinacci"
+.%A "V. Fuller"
+.%A "D. Meyer"
+.%A "D. Lewis"
+.%T "Locator/ID Separation protocol (LISP)"
+.%O "draft-ietf-lisp-15.txt"
+.Re
+.Sh NOTE
+.Pp
+The MAPM_CHANGE message is not yet implemented. 
+.Pp
+Please send any bug report or code contribution to the authors of
+OpenLISP.
+.Sh AUTHORS
+Luigi Iannone <ggx@openlisp.org>
+.Sh HISTORY
+The
+.Dv PF_MAP
+protocol family has been introduced with OpenLISP on 
+.Fx 7.0 . 

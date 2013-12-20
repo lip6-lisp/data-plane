@@ -1,0 +1,12 @@
+*** /usr/src/include/Makefile.original	Wed Aug 24 12:03:37 2011
+--- /usr/src/include/Makefile	Wed Aug 24 12:04:16 2011
+***************
+*** 52,57 ****
+--- 52,58 ----
+  	geom/mirror geom/multipath geom/nop \
+  	geom/raid3 geom/shsec geom/stripe geom/virstor \
+  	netgraph/atm netgraph/netflow \
++ 	net/lisp \
+  	security/audit \
+  	security/mac_biba security/mac_bsdextended security/mac_lomac \
+  	security/mac_mls security/mac_partition \
