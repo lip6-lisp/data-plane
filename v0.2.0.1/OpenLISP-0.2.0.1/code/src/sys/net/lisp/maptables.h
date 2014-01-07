@@ -192,7 +192,19 @@ struct locator_chain{
         struct locator_chain * next;	     
 };
 
+/*PCD */
+struct weight_rloc {
+	struct locator *rloc; //point to rloc in rloc_chain
+	struct weight_rloc *next;
+	uint8_t weight; //set = weight of rloc in rloc_chain and reduce each time rloc used
+};
 
+struct weight_rloc_chain {
+	struct weight_rloc *wr;//list of rloc will be use for encap, last rloc will be point to first, make a ring
+	struct weight_rloc *cwr; //next rloc will be use
+};
+
+/*DPC*/
 struct mapentry {
 	struct	radix_node map_nodes[2];    /* tree glue, and other values */
 	/* GgX - From original code:
@@ -224,6 +236,9 @@ struct mapentry {
  /* XXX ugly, user apps use this definition but don't have a mtx def */
 	struct	mtx map_mtx;		/* mutex for map entry */
 #endif
+	/*PCD*/
+	struct weight_rloc_chain load_balanc_tbl;
+	/*DPC*/
 };
 
 
@@ -437,6 +452,8 @@ void	 map_notifymsg(int, struct map_addrinfo *, struct mapentry *,
 int	 map_setentry(struct mapentry *, struct sockaddr_storage *);
 struct locator * map_findrloc(struct mapentry *, struct sockaddr_storage *);
 
+int map_set_load_balanc_tbl (struct mapentry *);
+int map_reset_load_balanc_tbl (struct mapentry *);
 int      map_select_srcrloc(struct mapentry * , struct locator *, 
 			    struct locator **);
 

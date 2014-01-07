@@ -4,8 +4,8 @@
     Please refer to the IETF LISP drafts for a description of the LISP data plane and 
     related functionalities.	
     
-    This is a modified version of OpenLISP (http://www.openlisp.org/) to support two new functions: 
-    LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR). 
+    This is a modified version of OpenLISP (http://www.openlisp.org/) to support load balancing and two new functions: 
+    LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR).
 
 
 2.  INSTALL
