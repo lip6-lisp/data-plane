@@ -456,13 +456,14 @@ map_select_srcrloc(dbmap, drloc,  srloc)
 
 }  /* map_select_srcrloc() */
 
-int 
-map_select_dstrloc(rmap, drloc)
-      struct mapentry * rmap;
-      struct locator ** drloc;
-{
-        struct locator_chain * lc = rmap->rlocs;
-
+/*PCD*/
+int
+map_set_load_balanc_tbl (struct mapentry *rmap) {
+	
+	struct locator_chain * lc = rmap->rlocs;
+	struct weight_rloc *wrc = NULL;
+	uint8_t spriority;
+	
 	while (lc && !(lc->rloc.rloc_metrix.rlocmtx.flags & RLOCF_UP)
 	          && (lc->rloc.rloc_metrix.rlocmtx.priority < MAX_RLOC_PRI)) {
 	       /* scan the chain and pick the first with status up and 
@@ -472,14 +473,80 @@ map_select_dstrloc(rmap, drloc)
 	};
 
 	if (lc) {
-
-	        *drloc = &(lc->rloc); 
-
-		lc->rloc.rloc_metrix.rloc_hit++;
-
+		/*get list of rloc with sufficient priority */
+		spriority = lc->rloc.rloc_metrix.rlocmtx.priority;
+		lc = rmap->rlocs;
+		while (lc){
+			if ( (lc->rloc.rloc_metrix.rlocmtx.flags & RLOCF_UP)
+	          && (lc->rloc.rloc_metrix.rlocmtx.priority < MAX_RLOC_PRI)
+			  && (lc->rloc.rloc_metrix.rlocmtx.priority == spriority) ) {
+			   /* scan the chain and pick the all with status up and 
+				* with sufficient priority.
+				*/
+				if(rmap->load_balanc_tbl.wr == NULL){
+					R_Zalloc(wrc, struct weight_rloc *, sizeof(struct weight_rloc));
+					rmap->load_balanc_tbl.wr = wrc;
+					wrc->next = wrc;
+					rmap->load_balanc_tbl.cwr = rmap->load_balanc_tbl.wr;
+				}else{
+					R_Zalloc(wrc->next, struct weight_rloc *, sizeof(struct weight_rloc));
+					wrc = wrc->next;
+					wrc->next = rmap->load_balanc_tbl.wr;
+				}
+				wrc->rloc = &lc->rloc;				
+				wrc->weight = lc->rloc.rloc_metrix.rlocmtx.weight;				
+			}
+	        lc = lc->next;
+		};
 		return 0;
 	};
+	rmap->load_balanc_tbl.wr = rmap->load_balanc_tbl.cwr =  NULL;
+	return ENOATTR;
+}
 
+int
+map_reset_load_balanc_tbl (struct mapentry *rmap) {
+	
+	struct weight_rloc *wrc = rmap->load_balanc_tbl.wr;
+	
+	if(wrc){
+		wrc->weight = wrc->rloc->rloc_metrix.rlocmtx.weight;
+		wrc = wrc->next;
+		while (wrc != rmap->load_balanc_tbl.wr ) {
+			wrc->weight = wrc->rloc->rloc_metrix.rlocmtx.weight; 
+			wrc = wrc->next;
+		};
+		rmap->load_balanc_tbl.cwr = rmap->load_balanc_tbl.wr;
+	};
+	return 0;
+}
+/*DPC*/
+
+int 
+map_select_dstrloc(rmap, drloc)
+      struct mapentry * rmap;
+      struct locator ** drloc;
+{
+	struct weight_rloc *wr;
+	struct weight_rloc *swr;
+	wr = swr = rmap->load_balanc_tbl.cwr;
+	if(swr && swr->weight <= 0){
+		wr = swr->next;
+		while( (wr != swr) && (wr->weight <=0) )
+			wr = wr->next;
+		if(wr == swr){
+			map_reset_load_balanc_tbl(rmap);
+			wr = rmap->load_balanc_tbl.cwr;
+		}
+	}
+	
+	if(wr){
+		*drloc = wr->rloc; 
+		wr->rloc->rloc_metrix.rloc_hit++;
+		wr->weight = wr->weight-1;
+		rmap->load_balanc_tbl.cwr = wr->next;
+		return 0;
+	};
 	return ENOATTR;
 
 }  /* map_select_dstrloc() */
@@ -817,6 +884,8 @@ struct mapfc_arg {
 	struct radix_node_head *rnh;
 };
 
+
+
 /*
  * These (questionable) definitions of apparent local variables apply
  * to the next two functions.  XXXXXX!!!
@@ -827,6 +896,7 @@ struct mapfc_arg {
 #define	eidmask	info->mapi_info[MAPX_EIDMASK]
 #define	flags	info->mapi_flags
 #define	versioning	info->mapi_versioning
+
 
 
 int
@@ -1022,7 +1092,7 @@ maprequest(int req, struct map_addrinfo *info, struct mapentry **ret_nmap)
 
 		getmicrotime(&timenow);
 		mapt->map_lastused = timenow.tv_sec;
-
+		
 		/*
 		 * actually return a resultant mapentry and
 		 * give the caller a single reference.
@@ -1031,6 +1101,16 @@ maprequest(int req, struct map_addrinfo *info, struct mapentry **ret_nmap)
 			*ret_nmap = mapt;
 			MAP_ADDREF(mapt);
 		}
+		/*PCD*/
+		//build load balancing table
+		mapt->load_balanc_tbl.wr = mapt->load_balanc_tbl.cwr = NULL;
+		if((error = map_set_load_balanc_tbl(mapt))){
+			/*one reason to error is not rloc can be used */			
+			MAP_UNLOCK(mapt);
+			senderr(error);			
+		}	
+		/*DPC*/
+		
 		MAP_UNLOCK(mapt);
 		break;
 	default:
