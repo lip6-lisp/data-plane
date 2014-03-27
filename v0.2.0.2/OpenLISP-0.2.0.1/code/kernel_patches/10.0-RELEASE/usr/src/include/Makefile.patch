@@ -1,0 +1,12 @@
+*** /usr/src/include/Makefile.orgi	Tue Feb 25 18:25:42 2014
+--- /usr/src/include/Makefile	Tue Feb 25 18:25:47 2014
+***************
+*** 53,58 ****
+--- 53,59 ----
+  	geom/mirror geom/mountver geom/multipath geom/nop \
+  	geom/raid geom/raid3 geom/shsec geom/stripe geom/virstor \
+  	netgraph/atm netgraph/netflow \
++ 	net/lisp \
+  	security/audit \
+  	security/mac_biba security/mac_bsdextended security/mac_lomac \
+  	security/mac_mls security/mac_partition \

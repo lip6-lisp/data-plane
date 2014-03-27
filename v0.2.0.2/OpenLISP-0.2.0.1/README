@@ -1,0 +1,71 @@
+INSTALLING:
+
+0.  Make sure that you have installed the complete source tree of
+    FreeBSD including man pages and utilities. The supported versions 
+    are: 7.3 - 7.4 - 8.1 - 8.2
+
+1.  Install libconfig (devel/libconfig) package from the ports 
+    collection.
+
+2.  To install OpenLISP files in the kernel just run the
+    "install-lisp.sh" shell script.
+
+2.  Modify your kernel configuration file making sure that  
+    the following line is present:
+
+         options  LISP
+
+ 3.  The easiest way to install LISP is to rebuild "world", as explained 
+    in:
+
+    http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/makeworld.html
+  
+    Otherwise, if you can just build and install the kernel 
+    (much faster) and then you compile and install the "map", mapd, and 
+    "mapstat" and all the man pages separately. 
+    This second procedure allows to avoid to go in single user mode
+    and needs just one reboot.
+
+    To compile and install your kernel please refer to:
+
+    http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/kernelconfig.html
+
+    To compile and install "map", "mapstat", and related man pages
+    perform the following commands:
+
+    cd /usr/src/sbin/map/
+    make depend
+    make 
+    make install
+    cd /usr/src/sbin/mapd/
+    make depend
+    make 
+    make install
+    cd /usr/src/usr.bin/mapstat/
+    make depend
+    make 
+    make install
+    cd /usr/src/share/man/man4/
+    make
+    make install
+
+    In order to work properly, OpenLISP needs forwarding
+    enabled. Thus, add the line 
+    
+    gateway_enable="YES"
+    ipv6_gateway_enable="YES"
+
+    to the /etc/rc.conf file. For more information please refer to the
+    rc.conf(5) man page. 
+
+    Then you can reboot your system.
+
+5.  A good start to understand how to use OpenLISP is to
+    look at the following:
+
+        man lispintro
+    	man map
+    	man 4 map
+    	man mapstat
+	man mapd
+

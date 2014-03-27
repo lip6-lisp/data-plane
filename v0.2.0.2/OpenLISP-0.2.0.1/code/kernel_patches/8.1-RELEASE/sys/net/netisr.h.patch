@@ -1,0 +1,14 @@
+*** /usr/src/sys/net/netisr.h.original	Wed Aug  4 16:21:01 2010
+--- /usr/src/sys/net/netisr.h	Wed Aug  4 16:22:00 2010
+***************
+*** 51,56 ****
+--- 51,59 ----
+  #define	NETISR_IPV6	10
+  #define	NETISR_NATM	11
+  #define	NETISR_EPAIR	12		/* if_epair(4) */
++ #ifdef LISP
++ #define NETISR_MAPPING 	13		/* mapping socket */
++ #endif /* LISP */
+  
+  /*-
+   * Protocols express ordering constraints and affinity preferences by

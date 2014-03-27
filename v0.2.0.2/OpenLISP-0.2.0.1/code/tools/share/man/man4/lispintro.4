@@ -1,0 +1,471 @@
+.\"/usr/src/share/man/man4/lispintro.4
+.\"
+.\" Copyright (c) 2009-2011 The OpenLISP Project
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Contributors:
+.\"		Luigi Iannone <ggx@openlisp.org>
+.\"
+.\" $Id: lispintro.4 181 2011-09-22 15:54:43Z ggx $
+.\"
+.\"
+.Dd September 27, 2011
+.Dt LISPINTRO 4
+.Os
+.Sh NAME
+.Nm Introduction to OpenLISP
+.Nd  Kernel implementation of the Locator/ID Separation protocol
+.Sh SYNOPSIS
+.In sys/types.h
+.In sys/time.h
+.In sys/socket.h
+.In net/if.h
+.In net/maptable.h
+.Sh DESCRIPTION
+.Nm OpenLISP 
+provides LISP (Locator/ID Separation Protocol) support into the kernel of
+.Fx .
+LISP is a simple IP-over-UDP tunneling solution, implemented typically
+on border routers, which act as Routing LOCators (RLOCs) for the
+end-systems of the local domain. End-systems still send and receive
+packets using IP addresses, which in the LISP terminology are called
+Endpoint IDentifiers (EIDs). 
+Since in a local domain there may be several border routers, EIDs can
+be associated to several RLOCs.  
+The binding between and an EID-Prefix and its RLOCs is called a mapping. 
+.Pp
+The basic idea of LISP is to tunnel packets in the core Internet from
+the RLOC of the source EID to the RLOC of the destination EID.
+During end-to-end packet exchange between two hosts, the source host
+first issues a normal IP packet that is normally routed in the
+source domain to reach one of its border routers. 
+The border router, or Ingress Tunnel Router (ITR), performs the
+EID-to-RLOC lookup in its local cache, or queries the mapping 
+system if no mapping is available in the cache.
+The result of the lookup is the RLOC of the destination host's EID which
+consist in a border router of the detination EID's domain acting as
+Egress Tunnel Router (ETR). 
+The ITR prepends a new LISP header to the packet before forwarding it,
+while the ETR strips this header on reception, before delivering the
+packet to the destination host.  
+The eventual reply of the host follows the same rules. 
+Only the first packet may trigger a query to the mapping system, since
+LISP uses a local caching mechanism to reduce the frequency of lookup
+and latency. 
+In particular, the kernel maintains a Mapping Information Database
+(MID), consisting in the 
+.Va LISP Cache,
+storing short lived mappings in an on-demand fashion, and the 
+.Va LISP Database,
+storing all "local" mappings (i.e., the mappings of the EID-Prefixes
+for which the router is an RLOC), used in selecting the appropriate RLOCs when
+encapsulating/decapsulating packets.
+.Pp
+In 
+.Nm OpenLISP
+the MID consists in a variant of the kernel radix called
+MapTables. In line with the UNIX philosophy and to give the possibility for
+Mapping Distribution Systems running in the user space to  access the
+kernel's MapTables a new type of socket, namely the
+.Va  Mapping Sockets,
+has been defined. Mapping Sockets are based on raw sockets in the new
+AF_MAP domain and are very similar to the well known routing
+sockets. More information about Mapping Sockets can be found in the
+.Xr map 4
+man page. 
+.Pp 
+.Nm OpenLISP
+provides also a small tool to add/remove mappings from the MID from
+the command line. Further information can be found in the 
+.Xr map 8
+man page.
+.Pp 
+.Nm OpenLISP 
+provides as well support for basic statistics concerning LISP related
+network operations. Those statistics can be also accessed from the
+command line through the mapstat tool. Further information can be
+found in the
+.Xr mapstat 1
+man page.
+.Pp 
+.Nm OpenLISP
+provides as well a simple daemon to query existing Mapping Systems in
+order to receive mappings upon miss event in the LISP Cache. 
+Further information can be found in the 
+.Xr mapd 8
+man page.
+.Sh LISP EXAMPLE
+This is a high level example on how LISP works.
+In
+.Xr map 8
+there is an example on how to setup a simple LISP topology using 
+.Nm OpenLISP . 
+To simplify the example, the following scenario is taken as
+reference, where H.A and H.B are the EIDs of respectively host  H.A
+and host H.B, while R.A and R.B are the RLOCs of respectively ITR R.A
+and ETR R.B.  H.A, H.B, R.A, and R.B are also normal IP addresses.
+.Pp
+ +-----------------+                           +-----------------+
+ | Domain A        |                           | Domain B        | 
+ |                 |   +-------------------+   |                 |
+ |       +---------+   |      Internet     |   +---------+       |
+ |       | ITR R.A |---|                   |---| ETR R.B |       |
+ |       +---------+   | Default free Zone |   +---------+       |
+ |                 |   +-------------------+   |                 |
+ |                 |                           |                 |
+ +-----------------+                           +-----------------+
+          |                                             |
+    +-----------+                                  +----------+
+    |  Host H.A |                                  | Host H.B |
+    +-----------+                                  +----------+
+.Pp
+Supposing that H.A wants to set up a TCP connection with H.B, the
+former will start sending a TCP SYN using H.A and H.B as respectively
+source address and destination address.
+The packet will be forwarded in Domain A eventually reaching ITR R.A.
+ITR R.A encapsulates the original packet in a LISP packet using R.A as
+source address and R.B as destination address, thus tunneling the
+packet in the DFZ.
+To perform such an encapsulation, it uses the mappings of the source
+and destination EIDs, as detailed later on.
+When the packet reaches the ETR R.B of the destination Domain B, the
+outer header is stripped and the original packet forwarded in the
+local domain, where it will eventually reach its destination, i.e., H.B.
+The encapsulation/decapsulation operations are performed by the xTRs
+thanks to 
+.Va LISP Database 
+and the 
+.Va LISP Cache. 
+.Pp
+The LISP Database stores the mappings that bind the local EID-Prefixes
+(i.e., inside the local domain) to a set of RLOCs, which belong to
+the xTRs deployed in the domain. For the example the content of both
+databases would be:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm Database R.A:
+H.A-Prefix -> R.A
+.It Cm Database R.B:
+H.B-Prefix -> R.B
+.El
+.Pp
+Where H.A-Prefix and H.B-Prefix represent the prefixes to which
+respectively H.A and H.B belong.
+The purpose of the LISP Database is two-fold. For outgoing packets, if
+a mapping exists for the source EID it means that the packet has to be
+LISP encapsulated and the source RLOC is selected from the set of
+RLOCs associated to the source EID-Prefix (R.A in the example).
+For incoming packets, if they are destined to a RLOC of the xTR, the
+UDP destination port is set to the LISP reserved number, and a mapping
+exists for the destination EID, then the packets are decapsulated.
+The LISP Database is statically configured on each xTR. 
+.Pp  
+The LISP Cache temporarily stores the mappings for EID-Prefixes that
+are not part of the local domain. 
+This is necessary to correctly encapsulate outgoing packets, in
+particular to select the RLOC to be used as destination address in
+the outer header.
+In the present scenario, in order encapsulate the SYN packet R.A has
+to have the following mapping in its cache:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm Cache R.A:
+H.B-Prefix -> R.B
+.El
+.Pp
+Vice versa, when H.B replies, R.B needs the following mapping to
+encapsulate the packet:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm Cache R.B:
+H.A-Prefix -> R.A
+.El
+.Pp
+The LISP Cache is filled on-demand, meaning that the very first packet
+that is destined to a domain for which no mapping is available in the
+cache generates a cache-miss.  
+When a cache-miss occurs, the LISP specification (
+.Va LISP, LISP-MS,
+and
+.Va LISP-ALT
+) request that the mapping is retrieved from a Mapping Distribution
+System.
+In
+.Nm OpenLISP
+a message is sent through all open Mapping Sockets to signal to the
+user space that a miss event occurred in the kernel. The current
+release does not support any mapping system daemon in the user space.
+.Pp 
+When a cache cache-miss occurs, the packet that triggered it cannot be
+encapsulated, since there is no mapping available. 
+The LISP specifications do not explicitly describe what to do with
+the packet.
+As a matter of fact, three options are available: i) silently drop the
+packet; ii) buffer the packet until a mapping is provided; iii)
+piggyback the packet in the Map-Request message. There is no perfect
+solution and every option has pros and cons.
+In 
+.Nm OpenLISP 
+buffering is not supported,
+by default the packet is 
+silently dropped.
+However, 
+.Nm OpenLISP
+can be configured to return the packet that generated the miss to the
+user space in order to allow piggybacking.
+.Sh SYSCTL
+.Nm OpenLISP 
+introduces the following new sysctl controls:
+.Bl -column security.bsd.unprivileged_read_msgbuf integerxxx
+.It Sy "Name	Type	Changeable
+.It "net.lisp.etr	string	yes
+.It "net.lisp.missmsg	string	yes
+.It "net.lisp.hashseed	integer	yes
+.It "net.lisp.srcport	string	yes
+.It "net.lisp.debug	integer	yes
+.It "net.lisp.xpgtimer	string	yes
+.It "net.masock.netisr_maxqlen	integer	yes
+.El
+.Pp 
+These sysctl controls, when changeable, can be set using the 
+.Xr sysctl 8
+command. They can be also configured differently from the default
+values at boot time using the 
+.Xr sysctl.conf 5 
+file. The description of the different controls and their
+possible values are detailed hereafter.
+.Ss net.lisp.etr
+This control determines the behavior of the machine when decapsulating
+LISP packets, i.e., when acting as ETR. In general, a packet is
+decapsulated and forwarded only if an entry for the destination EID
+exists in the LISP Database, otherwise it means that the machine is
+not a RLOC for the EID and the packet is dropped. If the entry in the
+LISP Database exists the packet is decapsulated depending on the value
+of the control. The possible values and the associated policy are:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm standard 
+This is the default value. The packet is decapsulated and forwarded 
+regardless if it exists an entry for the source EID into the 
+cache. This is in accordance with the LISP's main specifications.
+.It Cm notify
+The packet is decapsulated and forwarded, if there is no entry in the
+Cache for the source EID a MISS message is generated. 
+.It Cm secure
+The packet is decapsulated and forwarded only if an entry exists in the 
+Cache for the source EID, otherwise a MISS message is generated 
+and the packet is dropped.
+.El
+.Ss net.lisp.missmsg
+This control allows determining the type of message that is sent
+through open mapping sockets when a  MISS event occurs.
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm ip
+The miss message returns only the destination EID (IP address)
+that generated the miss. This is the default setting.
+.It Cm header
+The miss message returns the complete IP header of the 
+packet that generated the miss. 
+.It Cm packet
+The miss message returns the entire packet that generated 
+the miss.
+.El
+.Ss net.lisp.hashseed
+This is an integer value used as a seed in the hash function used to
+calculate the source port number of the LISP encapsulated packet. 
+.Ss net.lisp.srcport
+This control allows choosing different algorithms for the selection
+of the source port number in LISP encapsulated packets.
+The possible values and the associated algorithm are:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm lispdata
+Use LISP reserved port 4341 as source port for all encapsulated packets.
+.It Cm shorthash
+The source port number is obtained from a hash function. For IPv4, the
+source IP address, the destination IP address, and the Protocol Number of the IP
+header of the original packet are used. In case of IPv6, the source
+IP address, the destination IP address, and the Next Header of the IP
+header of the original packet are used.
+.It Cm longhash
+The source port number is obtained from a hash function. The used
+fields are the same like in the shorthash case with in addition the
+first 4 bytes right after the IP header of the original packet. 
+Note that this are usually the bytes that hold the source and
+destination ports for protocols like UDP, TCP, and SCTP, however,
+there is no check if it is actually the case. 
+The algorithm blindly uses the first for 4 bytes right after the IP header.
+.It Cm adaptivehash
+The source port number is obtained from a hash function. The same
+algorithm as longhash is performed if the header after the IP header
+is UDP, TCP, or SCTP, otherwise shorthash is used. In other words, the
+4 bytes right after the IP header are used only if they actually hold
+source and destination port numbers.
+.El 
+.Pp
+The hash function used for the computation of the source port is based
+on the code developed by Bob Jenkins and publicly available at:
+.Va  http://burtleburtle.net/bob/c/lookup3.c .
+.Ss net.lisp.debug
+Enables or disables log messages. A value of 0 disables the log
+messages, any other value enables them. Debug messages are logged
+in the file
+.Va /var/log/debug.log .
+.Ss net.lisp.xpgtimer
+This is the system expunge timer to periodically clean the LISP Cache 
+from unused entries. The time interval is expressed in seconds and can 
+range from the minimum value of 60 seconds (1 minute) up to 86,400 
+seconds (24 hours). When the expunge timer is fired the LISP Cache  
+is searched for all non-static entries that have not been used 
+in the last 
+.Nm net.lisp.xpgtimer 
+seconds. Every such an entry is expunged from the LISP Cache and a
+MAPM_DELETE message, with expired flag set, is broadcasted through all
+open mapping sockets.  
+The values accepted are:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm 60 - 86400
+Any numeric value in this range is interpreted as the number of seconds 
+to wait before performing a full radix search looking for expired
+entries. 
+.It Cm off
+This turns off the expunge timer. The LISP Cache is never check for
+stale entries.  All mappings have to be explicitly deleted. 
+To turn on again the timer it is sufficient to put any valid numeric
+value. 
+.El 
+.Ss net.mapsock.netisr_maxqlen
+This is the system maximum dispatch queue length for Mapping Sockets.
+.Pp 
+.Nm OpenLISP 
+uses as well the 
+.Xr sysctl 3
+API to export to the user space structure
+containing overall statistics. 
+The name of such structures in the sysctl hierarchy is:
+.Bl -column security.bsd.unprivileged_read_msgbuf integer
+.It Sy "Name	Type	Changeable
+.It "net.lisp.maptables	struct	yes
+.It "net.inet.lisp	struct	yes
+.It "net.inet6.lisp	struct	yes
+.El
+.Ss net.lisp.maptables
+This structure contains the overall hit and miss statistics for the
+LISP Cache and LISP Database and is defined as:
+.Bd -literal 
+/*
+ * Mapping statistics (Mixed IPv4 IPv6).
+ */
+struct	mapstats {
+        uint64_t    miss;    /* failed lookups */
+        uint64_t    hit;     /* successfull lookups */
+};
+
+struct	mappingstats {
+       struct mapstats db;    /* Database Stats */
+       struct mapstats cache; /* Cache Stats */
+};
+.Ed
+.Ss net.inet.lisp
+.Ss net.inet6.lisp
+These two controls return different instantiation of the same data
+structure; one for IPv4 and the other for IPv6. The data structure is
+defined as:
+.Bd -literal
+struct	lispbasicstat {
+				/* input statistics: */
+	uint32_t ipackets;	  /* total input packets */
+	uint32_t ioafpackets;	  /* total input packet with a different 
+				   * AF family in the outer header packet 
+				   */
+	uint32_t ihdrops; 	  /* packet shorter than header */
+        uint32_t ibadencap;	  /* no local mapping present */
+	uint32_t ibadlen;	  /* data length larger than packet */
+        uint32_t ibadsrcvnum;     /* bad source version number */
+        uint32_t ibaddstvnum;     /* bad dst version number */
+
+				/* output statistics: */
+	uint32_t  opackets;	  /* total output packets */
+        uint32_t  ooafpackets;	  /* total input packet with a  
+				   * different AF family in the inner 
+				   * packet 
+				   */
+        uint32_t  omissdrops;	  /* Drops due to cache-miss. */
+        uint32_t  onorlocdrops;	  /* Drops due to No suitable RLOC. */
+        uint32_t  osizedrops;	  /* Drops due to MTU check. */
+        uint32_t  onobufdrops;	  /* Drops due to no buffer space. */
+        uint32_t  odrops;	  /* packet dropped on output */
+};
+.Ed
+.Sh SEE Also
+.Xr map 8 ,
+.Xr map 4 ,
+.Xr mapstat 1 ,
+.Xr mapd 8 .
+.Rs
+.%A "L. Iannone"
+.%A "O. Bonaventure"
+.%T "OpenLISP Implementation Report"
+.%O "draft-iannone-openlisp-implementation-01.txt"
+.Re
+.Rs
+.%A "D. Farinacci"
+.%A "V. Fuller"
+.%A "D. Meyer"
+.%A "D. Lewis"
+.%T "Locator/ID Separation protocol (LISP)"
+.%O "draft-ietf-lisp-15.txt"
+.Re
+.Rs
+.%A "V. Fuller"
+.%A "D. Farinacci"
+.%A "D. Meyer"
+.%A "D. Lewis"
+.%T "LISP Alternative Topology (LISP+ALT)"
+.%O "draft-ietf-lisp-alt-08.txt"
+.Re
+.Rs
+.%A "V. Fuller"
+.%A "D. Farinacci"
+.%T "LISP Map Server"
+.%O "draft-ietf-lisp-ms-11.txt"
+.Re
+.Sh NOTE
+.Pp
+Please send any bug report or code contribution to the authors of
+OpenLISP.
+.Sh AUTHORS
+Luigi Iannone <ggx@openlisp.org>
+.Sh HISTORY
+A
+.Dv OpenLISP has been introduced on 
+.Fx 7.0 . 

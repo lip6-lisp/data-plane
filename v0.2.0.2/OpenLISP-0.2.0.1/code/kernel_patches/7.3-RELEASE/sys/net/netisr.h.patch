@@ -1,0 +1,17 @@
+*** /usr/src/sys/net/netisr.h.original	Mon Mar 29 16:05:42 2010
+--- /usr/src/sys/net/netisr.h	Mon Mar 29 16:06:54 2010
+***************
+*** 58,64 ****
+--- 58,69 ----
+  #define	NETISR_NATM	28
+  #define	NETISR_ATM	29
+  #define	NETISR_NETGRAPH	30
++ #ifdef LISP
++ #define NETISR_MAPPING 	31
++ #define	NETISR_POLLMORE	32		/* polling callback, must be last */
++ #else
+  #define	NETISR_POLLMORE	31		/* polling callback, must be last */
++ #endif /* LISP */
+  
+  #ifndef LOCORE
+  #ifdef _KERNEL

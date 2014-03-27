@@ -1,0 +1,16 @@
+*** /sys/conf/options.original	Fri Jul 29 20:01:49 2011
+--- /sys/conf/options	Fri Jul 29 20:03:27 2011
+***************
+*** 370,375 ****
+--- 370,380 ----
+  MROUTING		opt_mrouting.h
+  INET			opt_inet.h
+  INET6			opt_inet6.h
++ #                                                                             
++ # OpenLISP Support for LISP (Locator/ID Separation Protocol)                  
++ #                                                                             
++ LISP                    opt_lisp.h    
++ #     
+  IPSEC			opt_ipsec.h
+  IPSEC_DEBUG		opt_ipsec.h
+  IPSEC_FILTERTUNNEL	opt_ipsec.h
