@@ -1,0 +1,75 @@
+*** ip_output.c.orig	Sat Mar 22 15:00:32 2014
+--- ip_output.c	Sat Mar 22 16:06:09 2014
+***************
+*** 38,43 ****
+--- 38,44 ----
+  #include "opt_mbuf_stress_test.h"
+  #include "opt_mpath.h"
+  #include "opt_sctp.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 75,80 ****
+--- 76,88 ----
+  #include <netinet/sctp_crc32.h>
+  #endif
+  
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++   
++ #include <netinet/lisp/ip_lisp.h>
++ #endif /* LISP */
++ 
+  #ifdef IPSEC
+  #include <netinet/ip_ipsec.h>
+  #include <netipsec/ipsec.h>
+***************
+*** 133,138 ****
+--- 141,152 ----
+  #ifdef IPSEC
+  	int no_route_but_check_spd = 0;
+  #endif
++ 
++ #ifdef LISP
++ 	struct eidmap *  local_map = NULL;
++ 	struct eidmap *  remote_map = NULL;
++ #endif /* LISP */
++  
+  	M_ASSERTPKTHDR(m);
+  
+  	if (inp != NULL) {
+***************
+*** 258,263 ****
+--- 272,300 ----
+  		IFP_TO_IA(ifp, ia);
+  		isbroadcast = 0;	/* fool gcc */
+  	} else {
++  
++ #ifdef LISP
++                  /*  GgX - Before perform normal routing check if we have to
++                   *  perform LISP encap.
++                   *  If no encapsulation is possible we continue with 
++                   * "traditional" operation (kind of fall-back 
++                   * approach.
++                   */
++                   if ( ((error = lisp_ip_mapencap(&m, flags, &local_map, 
++                                                   &remote_map)) == 0)
++                       && local_map ) {
++                            
++                          error = lisp_output(m, hlen, local_map, remote_map);
++                          goto done; 
++  
++                   } else if (error) {
++                            
++                          goto bad;
++  
++                  }; 
++   
++ #endif /* LISP */
++ 	
+  		/*
+  		 * We want to do any cloning requested by the link layer,
+  		 * as this is probably required in all cases for correct

@@ -1,0 +1,12 @@
+*** Makefile.orig	Sat Mar 22 16:37:32 2014
+--- Makefile	Sat Mar 22 17:38:21 2014
+***************
+*** 95,100 ****
+--- 95,101 ----
+  	lzmainfo \
+  	m4 \
+  	${_makewhatis} \
++ 	mapstat \
+  	${_man} \
+  	mesg \
+  	minigzip \

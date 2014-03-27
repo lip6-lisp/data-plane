@@ -1,0 +1,85 @@
+*** /usr/src/sys/netinet/ip_output.c.orig	Mon Mar 24 19:11:00 2014
+--- /usr/src/sys/netinet/ip_output.c	Thu Mar 27 09:26:23 2014
+***************
+*** 39,44 ****
+--- 39,45 ----
+  #include "opt_mpath.h"
+  #include "opt_route.h"
+  #include "opt_sctp.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 51,56 ****
+--- 52,58 ----
+  #include <sys/sdt.h>
+  #include <sys/socket.h>
+  #include <sys/socketvar.h>
++ #include <sys/syslog.h>
+  #include <sys/sysctl.h>
+  #include <sys/ucred.h>
+  
+***************
+*** 77,82 ****
+--- 79,90 ----
+  #include <netinet/sctp.h>
+  #include <netinet/sctp_crc32.h>
+  #endif
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++   
++ #include <netinet/lisp/ip_lisp.h>
++ #endif /* LISP */
+  
+  #ifdef IPSEC
+  #include <netinet/ip_ipsec.h>
+***************
+*** 137,142 ****
+--- 145,156 ----
+  #ifdef IPSEC
+  	int no_route_but_check_spd = 0;
+  #endif
++   
++ #ifdef LISP
++     struct eidmap *  local_map = NULL;
++     struct eidmap *  remote_map = NULL;
++ #endif /* LISP */
++ 
+  	M_ASSERTPKTHDR(m);
+  
+  	if (inp != NULL) {
+***************
+*** 264,269 ****
+--- 278,307 ----
+  		IFP_TO_IA(ifp, ia);
+  		isbroadcast = 0;	/* fool gcc */
+  	} else {
++ 	
++ #ifdef LISP
++                  /*  GgX - Before perform normal routing check if we have to
++                   *  perform LISP encap.
++                   *  If no encapsulation is possible we continue with 
++                   * "traditional" operation (kind of fall-back 
++                   * approach.
++                   */
++             if ( ((error = lisp_ip_mapencap(&m, flags, &local_map, 
++ 				    &remote_map)) == 0)
++ 				    && local_map ) {
++ 				ip->ip_len = ntohs(ip->ip_len);
++ 				ip->ip_off = ntohs(ip->ip_off);
++ 				error = lisp_output(m, hlen, local_map, remote_map);
++ 				goto done; 
++ 
++ 			} else if (error) {
++                            
++                 goto bad;
++  
++             }; 
++   
++ #endif /* LISP */
++  
+  		/*
+  		 * We want to do any cloning requested by the link layer,
+  		 * as this is probably required in all cases for correct

@@ -1,0 +1,117 @@
+*** /usr/src/sys/netinet/ip_input.c.original	Mon Mar 29 16:20:52 2010
+--- /usr/src/sys/netinet/ip_input.c	Mon Mar 29 16:27:25 2010
+***************
+*** 38,43 ****
+--- 38,44 ----
+  #include "opt_ipsec.h"
+  #include "opt_mac.h"
+  #include "opt_carp.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 75,80 ****
+--- 76,88 ----
+  #include <netinet/ip_ipsec.h>
+  #endif /* IPSEC */
+  
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++  
++ #include <netinet/lisp/ip_lisp.h>
++ #endif /* LISP */
++ 
+  #include <sys/socketvar.h>
+  
+  /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
+***************
+*** 661,666 ****
+--- 669,685 ----
+  	 */
+  	ipstat.ips_delivered++;
+  
++ #ifdef LISP
++         if (lisp_ip_needdecap(&m)) {
++                 /* GgX - We have a LISP packet. 
++                  */
++   
++                  lisp_input(m, hlen);
++                  return;
++   
++         };
++ #endif /* LISP */
++ 
+  	(*inetsw[ip_protox[ip->ip_p]].pr_input)(m, hlen);
+  	return;
+  bad:
+***************
+*** 1251,1256 ****
+--- 1270,1279 ----
+  	struct route ro;
+  	int error, type = 0, code = 0, mtu = 0;
+  
++ #ifdef LISP
++         int need_lisp_encap = 0;
++ #endif /* LISP */
++  
+  	if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
+  		ipstat.ips_cantforward++;
+  		m_freem(m);
+***************
+*** 1268,1278 ****
+  	}
+  #endif
+  
+! 	ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));
+! 	if (!srcrt && ia == NULL) {
+! 		icmp_error(m, ICMP_UNREACH, ICMP_UNREACH_HOST, 0, 0);
+! 		return;
+! 	}
+  
+  	/*
+  	 * Save the IP header and at most 8 bytes of the payload,
+--- 1291,1309 ----
+  	}
+  #endif
+  
+! #ifdef LISP
+!         if ( !srcrt && !(need_lisp_encap = lisp_ip_needencap( &m )) ) {
+! #endif /* LISP */
+!  
+! 	        ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));
+! 		if (!srcrt && ia == NULL) {
+! 		        icmp_error(m, ICMP_UNREACH, ICMP_UNREACH_HOST, 0, 0);
+! 			return;
+! 		}
+! 
+! #ifdef LISP
+!        };
+! #endif /* LISP */
+  
+  	/*
+  	 * Save the IP header and at most 8 bytes of the payload,
+***************
+*** 1324,1330 ****
+  	 * or a route modified by a redirect.
+  	 */
+  	dest.s_addr = 0;
+! 	if (!srcrt && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+  		struct sockaddr_in *sin;
+  		struct rtentry *rt;
+  
+--- 1355,1367 ----
+  	 * or a route modified by a redirect.
+  	 */
+  	dest.s_addr = 0;
+! 
+! #ifdef LISP
+!         if (!srcrt && !need_lisp_encap && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+! #else
+!         if (!srcrt && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+! #endif /* LISP */
+! 
+  		struct sockaddr_in *sin;
+  		struct rtentry *rt;
+  

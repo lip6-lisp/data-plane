@@ -1,0 +1,13 @@
+*** /usr/src/etc/mtree/BSD.include.dist.original	Mon Jul 12 10:32:42 2010
+--- /usr/src/etc/mtree/BSD.include.dist	Mon Jul 12 10:33:31 2010
+***************
+*** 208,213 ****
+--- 208,215 ----
+          ..
+      ..
+      net
++         lisp
++         ..
+      ..
+      net80211
+      ..

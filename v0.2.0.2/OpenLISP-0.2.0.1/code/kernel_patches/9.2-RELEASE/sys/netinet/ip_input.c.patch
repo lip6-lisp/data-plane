@@ -1,0 +1,97 @@
+*** ip_input.c.orig	Sat Mar 22 14:51:44 2014
+--- ip_input.c	Sat Mar 22 16:00:11 2014
+***************
+*** 37,42 ****
+--- 37,43 ----
+  #include "opt_ipstealth.h"
+  #include "opt_ipsec.h"
+  #include "opt_route.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 76,81 ****
+--- 77,89 ----
+  #ifdef IPSEC
+  #include <netinet/ip_ipsec.h>
+  #endif /* IPSEC */
++   
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++   
++ #include <netinet/lisp/ip_lisp.h>
++ #endif /* LISP */
+  
+  #include <sys/socketvar.h>
+  
+***************
+*** 757,762 ****
+--- 765,781 ----
+  	 */
+  	IPSTAT_INC(ips_delivered);
+  
++ #ifdef LISP
++ 	if (lisp_ip_needdecap(&m)) {
++ 		/* GgX - We have a LISP packet. 
++ 		*/
++    
++ 		lisp_input(m, hlen);
++ 		return;
++    
++     };
++ #endif /* LISP */
++ 	
+  	(*inetsw[ip_protox[ip->ip_p]].pr_input)(m, hlen);
+  	return;
+  bad:
+***************
+*** 1365,1376 ****
+--- 1384,1403 ----
+  ip_forward(struct mbuf *m, int srcrt)
+  {
+  	struct ip *ip = mtod(m, struct ip *);
++ #ifdef LISP
++ 	struct in_ifaddr *ia = NULL;
++ #else
+  	struct in_ifaddr *ia;
++ #endif /* LISP */
+  	struct mbuf *mcopy;
+  	struct in_addr dest;
+  	struct route ro;
+  	int error, type = 0, code = 0, mtu = 0;
+  
++ #ifdef LISP
++ 	int need_lisp_encap = 0;
++ #endif /* LISP */
++  	
+  	if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
+  		IPSTAT_INC(ips_cantforward);
+  		m_freem(m);
+***************
+*** 1388,1393 ****
+--- 1415,1424 ----
+  	}
+  #endif
+  
++ #ifdef LISP
++ 	if ( !srcrt && !(need_lisp_encap = lisp_ip_needencap( &m )) ) {
++ #endif /* LISP */
++  
+  	ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));
+  #ifndef IPSEC
+  	/*
+***************
+*** 1401,1406 ****
+--- 1432,1441 ----
+  	}
+  #endif
+  
++ #ifdef LISP
++ 	};
++ #endif /* LISP */
++  
+  	/*
+  	 * Save the IP header and at most 8 bytes of the payload,
+  	 * in case we need to generate an ICMP message to the src.

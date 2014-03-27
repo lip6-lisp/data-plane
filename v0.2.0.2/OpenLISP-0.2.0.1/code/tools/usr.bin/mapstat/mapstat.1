@@ -1,0 +1,203 @@
+.\"/usr/src/usr.bin/mapstat/mapstat.1
+.\"
+.\" Copyright (c) 2009-2011 The OpenLISP Project
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Contributors:
+.\"		Luigi Iannone <ggx@openlisp.org>
+.\"
+.\" $Id: mapstat.1 182 2011-09-22 16:11:37Z ggx $
+.\"
+.\"
+.\"
+.\" Copyright (c) 1983, 1990, 1992, 1993
+.\"	The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"	@(#)netstat.1	8.8 (Berkeley) 4/18/94
+.\" $FreeBSD: src/usr.bin/netstat/netstat.1,v 1.50.8.3 2005/12/27 23:34:13 csjp Exp $
+.\"
+.Dd September 27, 2011
+.Dt MAPSTAT 1
+.Os
+.Sh NAME
+.Nm mapstat
+.Nd Modification of the 
+.Xr netstat 1
+utility to show LISP-related network status
+.Sh DESCRIPTION
+The
+.Nm
+command symbolically displays the contents of various network-related
+data structures. It is a modification of the existing netstat command,
+thus it basically offers the same identical features and can be used
+in the same identical way. Please refer to 
+.Xr netstat 1
+for more information on the normal use of netstat.
+.Pp
+What
+.Nm 
+introduces is the fact that it can show LISP-related network status.
+Where applies, mapstat accepts also the word "lisp" as protocol.
+Try the following command as an example:
+.Pp
+ mapstat -s -p lisp
+.Pp
+The 
+.Nm 
+adds the new following option:
+.Bl -tag -width flag
+.It Fl X 
+Displays the content of Mapping Information Database (MID), showing
+the available mappings and their status.   
+When used together with the 
+.Nm -s
+option, mapstat shows the number of hit and misses for both the LISP
+Cache and the LISP Database.
+.El
+.Pp
+.Nm 
+shows for each mapping the EID-Prefix, the flags related to the whole mapping,
+the list of RLOCs of the mapping. For each RLOC in the list, its
+address, its Priority, its Weight, and the flags related to the
+specific RLOC (detailed below).
+.Pp
+.Nm
+is able to provide more complete information for each mapping
+present in the MID. This is obtained by using the option
+.Nm -W 
+in conjunction with the 
+.Nm -X
+option.
+In this case 
+.Nm
+provides also the version number associated to the mapping,  the
+number of references to each mapping.
+For each RLOC, it also shows the available MTU (Maximum Transmission
+Unit), if it has been set. 
+.Nm OpenLISP 
+is able to automatically set the MTU of the local RLOCs, i.e., the
+RLOCs that are an interface of the local machine. 
+The number of times that the RLOC has been selected
+for packet encapsulation is shown as well.
+Finally, when present, two nonce values are shown: the TxNonce and the
+RxNonce.
+The first is the Nonce that by configuration is sent with LISP packets
+in the LISP header. The second is the last received Nonce during an
+echo Nonce request.
+.Pp 
+The flags field shows a collection of information about the mapping or
+the RLOC stored as binary choices. The individual flags are the listed
+hereafter.
+.Bl -tag -width 
+.It General Flags 
+.Bl -tag -width  
+.It D   
+The mapping entry is part of the LISP
+Database. If this flag is not present it means that the entry is part
+of the LISP Cache.
+.It V   
+The mapping entry includes a map version number.
+.It L   
+The mapping entry includes Locator Status Bits.
+.It U   
+The mapping entry is "up" and usable.
+.It S   
+The mapping entry is "static", i.e., it has been manually added.
+.It N
+The mapping is a negative mapping, no RLOCs are associated to it.
+.El
+.It RLOC Specific Flags 
+.Bl -tag -width 
+.It U 
+The specific RLOC is "up" and usable.
+.It i
+The specific RLOC is a local interface. This flag can be set only for
+mappings that are part of the LISP Database, i.e., have the flag "D" set.
+.It t
+The specific RLOC has a nonce that is transmitted in the LISP header.
+This flag can never be present in entries that are part of the LISP
+Database.
+.It r
+An echo-nonce request has been received from the RLOC, thus the last
+received nonce is stored. This flag can never be present in entries
+that are part of the LISP Database.
+.El 
+.El
+.Sh SEE ALSO
+.Xr netstat 1 ,
+.Xr lispintro 4 ,
+.Xr map 8 ,
+.Xr map 4 .
+.Sh NOTE
+.Pp
+Please send any bug report or code contribution to the authors of
+OpenLISP.
+.Sh AUTHORS
+Luigi Iannone <ggx@openlisp.org>
+.Sh HISTORY
+The
+.Nm
+utility appeared in
+.Fx 7.0 . 
+.Sh BUGS
+The code is still experimental. Some combinations of the 
+.Fl X 
+option with other native options of 
+.Cm netstat
+may not work or produce unexpected results. Please consider reporting
+to the authors any of such cases. 

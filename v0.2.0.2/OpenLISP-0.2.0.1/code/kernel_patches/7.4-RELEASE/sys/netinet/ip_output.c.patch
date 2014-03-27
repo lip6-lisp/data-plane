@@ -1,0 +1,71 @@
+*** /sys/netinet/ip_output.c.original	Fri Jul 29 20:39:38 2011
+--- /sys/netinet/ip_output.c	Fri Jul 29 20:49:58 2011
+***************
+*** 36,41 ****
+--- 36,42 ----
+  #include "opt_ipsec.h"
+  #include "opt_mac.h"
+  #include "opt_mbuf_stress_test.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 63,68 ****
+--- 64,76 ----
+  #include <netinet/ip_var.h>
+  #include <netinet/ip_options.h>
+  
++ #ifdef LISP                                                                   
++ #include <net/lisp/lisp.h>                                                    
++ #include <net/lisp/maptables.h>                                               
++                                                                                
++ #include <netinet/lisp/ip_lisp.h>                                             
++ #endif /* LISP */   
++ 
+  #ifdef IPSEC
+  #include <netinet/ip_ipsec.h>
+  #include <netipsec/ipsec.h>
+***************
+*** 118,123 ****
+--- 126,136 ----
+  #ifdef IPFIREWALL_FORWARD
+  	struct m_tag *fwd_tag = NULL;
+  #endif
++ #ifdef LISP                                                                   
++  	struct eidmap *  local_map = NULL;                                    
++  	struct eidmap *  remote_map = NULL;                                   
++ #endif /* LISP */      
++ 
+  	M_ASSERTPKTHDR(m);
+  
+  	if (ro == NULL) {
+***************
+*** 226,231 ****
+--- 239,264 ----
+  		 * as this is probably required in all cases for correct
+  		 * operation (as it is for ARP).
+  		 */
++ #ifdef LISP                                                                   
++ 		/*  GgX - Before perform normal routing check if we have to     
++ 		 *  perform LISP encap.                                         
++ 		 *  If no encapsulation is possible we continue with            
++ 		 * "traditional" operation (kind of fall-back                   
++ 		 * approach.                                                    
++  		 */                                                             
++ 		if ( ((error = lisp_ip_mapencap(&m, flags, &local_map,          
++ 						&remote_map)) == 0)            
++ 			 && local_map ) {                              
++                                                                           
++  		error = lisp_output(m, hlen, local_map, remote_map);    
++  		goto done;                                              
++                                                                               
++ 		} else if (error) {                                            
++                                                                              
++   			goto bad;                                               
++                                                                              
++ 		};  
++ #endif /* LISP */                                                             
+  		if (ro->ro_rt == NULL)
+  			in_rtalloc_ign(ro, 0,
+  			    inp ? inp->inp_inc.inc_fibnum : M_GETFIB(m));

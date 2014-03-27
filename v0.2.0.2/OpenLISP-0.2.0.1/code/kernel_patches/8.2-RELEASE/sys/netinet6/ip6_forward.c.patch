@@ -1,0 +1,75 @@
+*** /sys/netinet6/ip6_forward.c.original	Wed Jun 29 13:58:16 2011
+--- /sys/netinet6/ip6_forward.c	Wed Jun 29 14:01:59 2011
+***************
+*** 36,41 ****
+--- 36,42 ----
+  #include "opt_inet6.h"
+  #include "opt_ipsec.h"
+  #include "opt_ipstealth.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 65,70 ****
+--- 66,78 ----
+  #include <netinet/icmp6.h>
+  #include <netinet6/nd6.h>
+  
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++   
++ #include <netinet6/lisp6/ip6_lisp6.h>
++ #endif /* LISP */
++ 
+  #include <netinet/in_pcb.h>
+  
+  #ifdef IPSEC
+***************
+*** 105,110 ****
+--- 113,123 ----
+  #endif
+  	char ip6bufs[INET6_ADDRSTRLEN], ip6bufd[INET6_ADDRSTRLEN];
+  
++ #ifdef LISP
++         struct eidmap *  local_map = NULL;
++         struct eidmap *  remote_map = NULL;
++ #endif /* LISP */
++ 
+  #ifdef IPSEC
+  	/*
+  	 * Check AH/ESP integrity.
+***************
+*** 352,357 ****
+--- 365,394 ----
+  	dst->sin6_family = AF_INET6;
+  	dst->sin6_addr = ip6->ip6_dst;
+  
++ #ifdef LISP
++         /* Check if LISP encap possible.
++          * In possible call the correct routine.
++          */
++ 
++         error = 0;
++          
++         if ( !srcrt && ((error = lisp_ip6_mapencap( &m, 0, &local_map,
++                                                      &remote_map)) == 0)
++                     && local_map ) {
++                              
++                 error = lisp6_output(m, sizeof(struct ip6_hdr), 
++                                               local_map, remote_map);
++                  
++                 goto senderr; 
++                                 
++         } else if (error) {
++  
++                   m_freem(m);
++                   goto freecopy;
++  
++         };
++ #endif /* LISP */
++ 
+  	rin6.ro_rt = rtalloc1((struct sockaddr *)dst, 0, 0);
+  	if (rin6.ro_rt != NULL)
+  		RT_UNLOCK(rin6.ro_rt);
