@@ -12,7 +12,7 @@
 
 2.  INSTALL
 
-    Please refer to documents inside the tarball source code.
+    Please refer to documents inside the source code.
 
 3.  FUNCTION SWITCHING
 
