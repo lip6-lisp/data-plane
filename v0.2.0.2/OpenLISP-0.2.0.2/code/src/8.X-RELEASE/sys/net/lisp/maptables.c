@@ -369,7 +369,10 @@ map_select_srcrloc(dbmap, drloc,  srloc)
 	struct ifnet *ifp = NULL;
 	struct rtentry *rt = NULL;
 	struct sockaddr_in6 ip6_dst;
-	
+	/*PCD */
+ 	int in6_local;
+ 	in6_local = 0;
+ 	/*DPC*/
 	bzero( &out_ifa, sizeof(struct sockaddr_storage) );
 
 	switch (drloc->rloc_addr->ss_family) {
@@ -415,9 +418,15 @@ map_select_srcrloc(dbmap, drloc,  srloc)
 		
 		};
 		
-		bcopy( rt->rt_ifa, &out_ifa, 
-		       SS_SIZE(rt->rt_ifa));
-		RTFREE(rt);
+		/*PCD*/
+		//bcopy( rt->rt_ifa, &out_ifa, 
+ 		//      SS_SIZE(rt->rt_ifa));
+		bcopy( (struct sockaddr_in6 *)rt->rt_ifa->ifa_addr, &out_ifa,
+ 			sizeof(struct sockaddr_in6));
+ 		if( IN6_IS_ADDR_LINKLOCAL(&((struct sockaddr_in6 *)rt->rt_ifa->ifa_addr)->sin6_addr))
+	 		in6_local = 1;		
+ 		/*DPC*/	
+  		RTFREE(rt);
 
 		break;
 
@@ -429,11 +438,21 @@ map_select_srcrloc(dbmap, drloc,  srloc)
 
         struct locator_chain * lc = dbmap->rlocs;
 
-	while (lc 
+	/*PCD*/
+	 while( lc && (
+			!(lc->rloc.rloc_addr->ss_family == drloc->rloc_addr->ss_family)
+			|| !(lc->rloc.rloc_metrix.rlocmtx.flags & RLOCF_UP )
+			|| !(lc->rloc.rloc_metrix.rlocmtx.flags & RLOCF_LIF)
+			|| !(lc->rloc.rloc_metrix.rlocmtx.priority < MAX_RLOC_PRI)
+			|| (!in6_local && memcmp( &out_ifa, lc->rloc.rloc_addr, SS_SIZE(lc->rloc.rloc_addr)))
+					)
+	){
+
+	/* while (lc 
 	       && !(lc->rloc.rloc_addr->ss_family == drloc->rloc_addr->ss_family)
 	       && !(lc->rloc.rloc_metrix.rlocmtx.flags & (RLOCF_UP | RLOCF_LIF))
 	       && (lc->rloc.rloc_metrix.rlocmtx.priority < MAX_RLOC_PRI)
-	       && (memcmp( &out_ifa, lc->rloc.rloc_addr, SS_SIZE(lc->rloc.rloc_addr)))) {
+	       && (memcmp( &out_ifa, lc->rloc.rloc_addr, SS_SIZE(lc->rloc.rloc_addr)))) { */
 	       /* Scan the chain and pick the first that:
 		* - Has the same AF
 		* - Is a local address 
@@ -442,7 +461,8 @@ map_select_srcrloc(dbmap, drloc,  srloc)
 		*/
 	        lc = lc->next;
 	};
-
+	/*DPC*/
+	
 	if (lc) {
 
 	        *srloc = &(lc->rloc);
