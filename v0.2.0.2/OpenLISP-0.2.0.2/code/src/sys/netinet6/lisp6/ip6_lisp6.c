@@ -401,7 +401,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 	/* Checkout for mapping */
 	cachelookup(&remote_map); 	   
 
-	if (remote_map.mapping) {
+	if (remote_map.mapping && !(remote_map.mapping->map_flags & MAPF_NEGATIVE)) {
 	       /* Got a mapping in the Cache
 		*/
 			/*PCD*/
