@@ -393,7 +393,19 @@ echo "--------------------------------------------------------"
 echo 
 
 echo "  Searching: /usr/ports/devel/libconfig"
-setvar LIBCONFIG  `pkg_info -O devel/libconfig | grep "libconfig-"`
+case "$VERSION" in
+    9.2-RELEASE)
+        LIBCONFIG=`pkg_info  -O devel/libconfig | grep "libconfig-"`
+        break;;
+
+    10.0-RELEASE)
+        LIBCONFIG=`pkg info  devel/libconfig | grep "libconfig-"`
+        break;;
+    *)
+        setvar LIBCONFIG  `pkg_info -O devel/libconfig | grep "libconfig-"`
+        break;;
+esac
+
 
 if [ $LIBCONFIG ] 
 then
