@@ -1,0 +1,191 @@
+.\"/usr/src/sbin/mapd/mapd.8
+.\"
+.\" Copyright (c) 2009-2011 The OpenLISP Project
+.\"
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Contributors:
+.\"		Luigi Iannone         <ggx@openlisp.org>
+.\"            Lorand Jakab          <ljakab@ac.upc.edu>
+.\"
+.\" $Id: mapd.8 183 2011-09-22 16:29:20Z ggx $
+.\"
+.\" Copyright (c) 2010, Lorand Jakab <ljakab@ac.upc.edu>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions are met:
+.\"     o Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"     o Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in the
+.\"       documentation and/or other materials provided with the distribution.
+.\"     o Neither the name of the University nor the names of its contributors
+.\"       may be used to endorse or promote products derived from this software
+.\"       without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+.\" WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+.\" DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+.\" DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+.\" (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+.\" LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+.\" ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+.\" SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd September 27, 2011
+.Dt MAPD 8
+.Os
+.Sh NAME
+.Nm mapd
+.Nd User space OpenLISP Mapping Daemon
+.Sh SYNOPSIS
+.Nm
+.Op Fl dfhnqv
+.Op Fl c Ar count
+.Op Fl t Ar timeout
+.Op Fl r Ar path/config/file
+.Sh DESCRIPTION
+The
+.Nm
+user space daemon listens on the multicast Mapping Socket created by the
+OpenLISP kernel for MAPM_MISS_EID messages. On such event it looks up the
+corresponding EID-to-RLOC mapping and installs it into the kernel
+database. This is done by querying a pre-configured Map-Resolver
+sending a Map-Request message and expecting a Map-Reply message
+containing the requested mapping. 
+.Pp
+Available options:
+.Bl -tag -width indent
+.It Fl d
+Debugging only. When this option is present, no changes are made to kernel
+mapping table.
+.It Fl f
+Run daemon in foreground. Messages are printed on the standard input and error
+instead of syslog.
+.It Fl h
+Print usage information.
+.It Fl n
+Do not perform a reverse DNS lookup on IP addresses, print numeric values.
+.It Fl q
+Quiet flag. Minimize output.
+.It Fl v
+Verbose flag. Maximize output. Only available in foreground mode.
+.It Fl c Ar count
+Send Map-Requests
+.Ar count
+times before giving up. The allowed range is between 1 and 5, inclusive.
+.It Fl t Ar timeout
+Wait
+.Ar timeout
+seconds between retries. The allowed range is between 1 and 5 seconds,
+inclusive.
+.It Fl r Ar path/config/file
+Indicate the configuration file (including absolute path). 
+.El
+.Pp
+The 
+.Nm
+reads the 
+.Ar path/config/file
+configuration file at startup time in order to determine the initial
+configuration.
+The configuration file consists in one single configuration item right now,
+namely the resolver server. The configuration file must contain one
+single line of the form:
+.Pp
+resolver="RESOLVER";
+.Pp
+Where 
+.Va RESOLVER
+can be a FQDN or an IP address of a Map-Resolver. Unless you
+are using a private server,  to find a Resolver consider visiting 
+.Va http://www.lisp4.net .
+By default, mapd uses 
+.Va l3-london-mr-ms.rloc.lisp4.net .
+.Pp
+Once installed mapd allows to be configured through 
+.Xr rc.conf 5 .
+To enable 
+.Nm mapd
+through rc.conf it is sufficient to add the following line:
+.Pp
+mapd_enable="YES"
+.Pp
+To use a configuration file different from 
+.Va /usr/local/etc/mapd/mapd.conf
+it is sufficient to add the line:
+.Pp
+mapd_config="path/config/file"
+.Pp
+containg the alternative configuration file name including its
+absolute path. 
+.Sh FILES
+.Bl -tag -width /usr/local/etc/mapd/mapd.conf -compact
+.It Pa /usr/local/etc/mapd/mapd.conf 
+Default configuration file. 
+.El
+.Sh SEE ALSO
+.Xr lispintro 4 ,
+.Xr map 4 ,
+.Xr map 8 ,
+.Xr mapstat 1 .
+.Rs
+.%A "D. Farinacci"
+.%A "V. Fuller"
+.%A "D. Oran"
+.%A "D. Meyer"
+.%T "Locator/ID Separation protocol (LISP)"
+.%O "draft-ietf-lisp-15.txt"
+.Re
+.Rs
+.%A "V. Fuller"
+.%A "D. Farinacci"
+.%T "LISP Map Server"
+.%O "draft-ietf-lisp-ms-11.txt"
+.Re
+.Sh NOTE
+.Pp
+Please send any bug report or code contribution to the authors of
+OpenLISP.
+.Sh AUTHORS
+The
+.Nm
+utility was written by Lorand Jakab <ljakab@ac.upc.edu> and modified
+by Luigi Iannone <ggx@openlisp.org>.
+It includes code developped by David Meyer <dmm@1-4-5.net> for
+performing mapping lookups.
+.Sh HISTORY
+The
+.Nm
+utility appeared in
+.Fx 8.0 .

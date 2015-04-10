@@ -1,0 +1,125 @@
+*** /sys/netinet/ip_input.c.original	Wed Jun 29 13:25:48 2011
+--- /sys/netinet/ip_input.c	Wed Jun 29 13:34:56 2011
+***************
+*** 37,42 ****
+--- 37,43 ----
+  #include "opt_ipstealth.h"
+  #include "opt_ipsec.h"
+  #include "opt_route.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/systm.h>
+***************
+*** 77,82 ****
+--- 78,90 ----
+  #ifdef IPSEC
+  #include <netinet/ip_ipsec.h>
+  #endif /* IPSEC */
++   
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++  
++ #include <netinet/lisp/ip_lisp.h>
++ #endif /* LISP */
+  
+  #include <sys/socketvar.h>
+  
+***************
+*** 784,789 ****
+--- 792,808 ----
+  	 */
+  	IPSTAT_INC(ips_delivered);
+  
++ #ifdef LISP
++         if (lisp_ip_needdecap(&m)) {
++                 /* GgX - We have a LISP packet. 
++                  */
++   
++                  lisp_input(m, hlen);
++                  return;
++   
++         };
++ #endif /* LISP */
++ 
+  	(*inetsw[ip_protox[ip->ip_p]].pr_input)(m, hlen);
+  	return;
+  bad:
+***************
+*** 1392,1403 ****
+  ip_forward(struct mbuf *m, int srcrt)
+  {
+  	struct ip *ip = mtod(m, struct ip *);
+! 	struct in_ifaddr *ia;
+  	struct mbuf *mcopy;
+  	struct in_addr dest;
+  	struct route ro;
+  	int error, type = 0, code = 0, mtu = 0;
+  
+  	if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
+  		IPSTAT_INC(ips_cantforward);
+  		m_freem(m);
+--- 1411,1430 ----
+  ip_forward(struct mbuf *m, int srcrt)
+  {
+  	struct ip *ip = mtod(m, struct ip *);
+! #ifdef LISP
+!         struct in_ifaddr *ia = NULL;
+! #else
+!         struct in_ifaddr *ia;
+! #endif /* LISP */
+  	struct mbuf *mcopy;
+  	struct in_addr dest;
+  	struct route ro;
+  	int error, type = 0, code = 0, mtu = 0;
+  
++ #ifdef LISP
++         int need_lisp_encap = 0;
++ #endif /* LISP */
++ 
+  	if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
+  		IPSTAT_INC(ips_cantforward);
+  		m_freem(m);
+***************
+*** 1415,1420 ****
+--- 1442,1451 ----
+  	}
+  #endif
+  
++ #ifdef LISP
++         if ( !srcrt && !(need_lisp_encap = lisp_ip_needencap( &m )) ) {
++ #endif /* LISP */
++ 
+  	ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));
+  #ifndef IPSEC
+  	/*
+***************
+*** 1428,1433 ****
+--- 1459,1468 ----
+  	}
+  #endif
+  
++ #ifdef LISP
++         };
++ #endif /* LISP */
++ 
+  	/*
+  	 * Save the IP header and at most 8 bytes of the payload,
+  	 * in case we need to generate an ICMP message to the src.
+***************
+*** 1478,1485 ****
+--- 1513,1525 ----
+  	 * or a route modified by a redirect.
+  	 */
+  	dest.s_addr = 0;
++ #ifdef LISP
++         if (!srcrt && !need_lisp_encap && V_ipsendredirects &&
++             ia != NULL && ia->ia_ifp == m->m_pkthdr.rcvif) {
++ #else
+  	if (!srcrt && V_ipsendredirects &&
+  	    ia != NULL && ia->ia_ifp == m->m_pkthdr.rcvif) {
++ #endif /* LISP */
+  		struct sockaddr_in *sin;
+  		struct rtentry *rt;
+  

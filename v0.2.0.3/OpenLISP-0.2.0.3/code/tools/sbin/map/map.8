@@ -1,0 +1,373 @@
+.\"/usr/src/sbin/map/map.8
+.\"
+.\" Copyright (c) 2009-2011 The OpenLISP Project
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the University of
+.\"	California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" Contributors:
+.\"		Luigi Iannone <ggx@openlisp.org>
+.\"
+.\" $Id: map.8 182 2011-09-22 16:11:37Z ggx $
+.\"
+.\"
+.\" Copyright (c) 1983, 1990, 1992, 1993
+.\"     The Regents of the University of California.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"     This product includes software developed by the University of
+.\"     California, Berkeley and its contributors.
+.\" 4. Neither the name of the University nor the names of its contributors
+.\"    may be used to endorse or promote products derived from this software
+.\"    without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\"
+.Dd September 27, 2011
+.Dt MAP 1
+.Os
+.Sh NAME
+.Nm map
+.Nd manually manipulate the LISP mappings
+.Sh SYNOPSIS
+.Nm
+.Op Fl dnqtv
+.Ar command
+.Oo
+.Op Ar modifiers
+.Ar args
+.Oc
+.Sh DESCRIPTION
+The
+.Nm
+utility is used to manually manipulate the network
+mapping tables (both cache and database).
+Only the super-user may modify the mapping tables.
+It normally is not needed, as a system mapping table management 
+daemon, such as LISP-ALT, should tend to this task.
+.Pp
+The
+.Nm
+utility supports a limited number of general options,
+but a rich command language, enabling the user to specify
+any arbitrary request that could be delivered via the
+programmatic interface discussed in
+.Xr map 4 .
+.Pp
+The following options are available:
+.Bl -tag -width indent
+.It Fl d
+Run in debug-only mode, i.e., do not actually modify the MapTables.
+.It Fl n
+Bypass attempts to print host and network names symbolically
+when reporting actions.
+(The process of translating between symbolic
+names and numerical equivalents can be quite time consuming, and
+may require correct operation of the network; thus it may be expedient
+to forget this, especially when attempting to repair networking operations).
+.It Fl v
+(verbose) Print additional details.
+.It Fl q
+Suppress all output from the
+.Cm add , change , 
+and
+.Cm delete
+commands.
+.El
+.Pp
+The
+.Nm
+utility provides five commands:
+.Pp
+.Bl -tag -width Fl -compact
+.It Cm add
+Add a mapping.
+.It Cm delete
+Delete a specific mapping.
+.It Cm get
+Lookup and display the mapping for an EID.
+.It Cm monitor
+Continuously report any changes to the mapping information base,
+mapping lookup misses, etc.
+.It Cm flush
+Remove all mappings. By default only mapping that are part of the LISP
+Cache are deleted unless specified differently through modifiers.
+.El
+.Pp
+The monitor command has the syntax:
+.Pp
+.Bd -ragged -offset indent -compact
+.Nm
+.Op Fl n
+.Cm monitor
+.Ed
+.Pp
+The flush command has the syntax:
+.Pp
+.Bd -ragged -offset indent -compact
+.Nm
+.Op Fl n
+.Cm flush
+.Op Fl cache \&| Fl database \&| Fl all
+.Ed
+.Pp
+Where
+.Fl cache 
+indicates to delete all mappings of the LISP Cache. This is the
+default behavior if no modifier is specified. 
+The 
+.Fl database
+modifier indicates to delete all mappings of the LISP Database. 
+The 
+.Fl all
+modifier indicates to delete all mappings from both the LISP Cache and
+the LISP Database.
+.Pp
+The other commands have the following syntax:
+.Pp
+.Bd -ragged -offset indent -compact
+.Nm
+.Op Fl n
+.Ar command
+.Op Fl cache \&| Fl database
+.Op Fl static \&| Fl nostatic
+.Op Fl version Ar VERSION
+.Op Fl locbits
+.Op Fl negative
+.Op Fl inet No \&| Fl inet6
+.Ar EID 
+.Op Fl inet No \&| Fl inet6 
+.Ar RLOC 
+.Op Priority Op Weight Op Rechability
+.Ed
+.Pp
+Where
+.Ar EID
+is the address of the EID-Prefix (it can be also a full address),
+while
+.Ar RLOC
+is a full address representing one of the RLOCs of the mapping. It is
+possible to define multiple RLOCs for the same EID.
+The keyword 
+.Fl inet
+and 
+.Fl inet6
+are not optional, they must be used before any address (both EID and
+RLOC). These keywords indicate if the following address should be
+treated as an IPv4 or IPv6 address/prefix.
+The 
+.Ar EID
+must be specified in the
+.Ar net Ns / Ns Ar bits
+format.
+For example,
+.Fl inet 
+.Li 128.32
+is interpreted as
+.Fl inet 
+.Li 128.0.0.32 ;
+.Fl inet
+.Li 128.32.130
+is interpreted as
+.Fl inet
+.Li 128.32.0.130 ;
+and
+.Fl inet
+.Li 192.168.64/20
+is interpreted as the network prefix 
+.Li 192.168.64.0 
+with netmask
+.Li 255.255.240.0 .
+.Pp
+The mofifiers 
+.Fl cache 
+and
+.Fl database
+indicate if the mapping should be treated as part of the LISP Cache or
+the LISP Database. If nothing is specified the default is LISP Cache.
+.Pp
+The modifiers 
+.Fl static
+and 
+.Fl nostatic
+indicate whether  the mapping has been manually added
+(default) or has been added by a daemon.
+.Pp
+The 
+.Fl version
+modifier allows to associate a version number to the mapping. If the
+modifier is present the argument right after it, i.e., 
+.Ar VERSION 
+is interpreted as the numeric value of the Map-Version. Only values
+between 0 and 4096 are valid and accepted. 
+.Pp
+The
+.Fl locbits
+modifier enables the Loc-Status-Bits in the LISP header when
+encapsulating packets with the mapping. See 
+.Va LISP
+for further details on this mechanism.
+.Pp
+The 
+.Fl negative 
+modifier allows to manipulate negative mappings. Negative mappings
+are special mappings indicating that no LISP encapsulation must be
+performed for destination in the prefix provided as EID-prefix.
+In the case of negative mappings no RLOCs have to be provided. 
+.Pp
+The values 
+.Ar Priority ,
+.Ar Weight ,
+and 
+.Ar Reachability ;
+are optional to declare. If not declared, the following default values
+are set:
+.Pp
+.Bl -tag -compact
+.It Priority 
+255 (Not usable)
+.It Weight
+100
+.It Reachability
+0 (not reachable)
+.El
+.Pp
+It is not mandatory to declare all of them, but when declaring one,
+all the previous must be also declared. This means that to declare a
+weight the priority must also be declared; and to set the reachability
+to 1 (reachable) both priority and weight must be declared.
+.Pp
+The
+.Nm
+utility uses a mapping socket and the message types
+.Dv MAPM_ADD , MAPM_DELETE , 
+and
+.Dv MAPM_GET .
+The 
+.Cm flush
+command is performed using the 
+.Xr sysctl 3 
+interface. 
+.Pp
+Only the super-user may modify the mapping tables but all users may
+query them.
+.Sh EXAMPLES
+.Pp 
+The command to add a mapping, in the LISP Database, 
+for 
+.Ar EID 
+.Li 1.1.0.0/16 , 
+having 
+.Ar RLOC 
+.Li 2.2.2.2 
+and 
+.Ar Priority 
+1, 
+.Ar Weight 
+100, and marked as Reachable, is: 
+.Pp
+map add -database -inet 1.1.0.0/16 -inet 2.2.2.2 1 100 1
+.Pp 
+The command to delete the same mapping is: 
+.Pp
+map delete -inet 1.1.0.0/16
+.Pp
+To add in the LISP Cache a mapping having several 
+RLOCs,  the command is:
+.Pp 
+map add -cache -inet 1.1.0.0/16 -inet 2.2.2.2 1 100 1 -inet 3.3.3.3 2 100 1
+-inet 4.4.4.4 3 100  -inet 5.5.5.5 
+.Pp
+The above command associate to the 
+.Ar EID-Prefix
+.Li 1.1.0.0/16
+the following RLOCs and related 
+.Ar Priority , 
+.Ar Weight ,  
+and 
+.Ar Reachability 
+values:
+.Bl -column ".Li 2.2.2.2" ".Dv Priority" ".Dv Weight" ".Dv Reachbility"
+.It Cm RLOC Ta Cm Priority Ta Cm Weight Ta Cm Reachability
+.It Li 2.2.2.2 Ta Dv 1 Ta Dv 100 Ta Dv Reachable
+.It Li 3.3.3.3 Ta Dv 2 Ta Dv 100 Ta Dv Reachable
+.It Li 4.4.4.4 Ta Dv 3 Ta Dv 100 Ta Dv Unreachable
+.It Li 5.5.5.5 Ta Dv 255 Ta Dv 100 Ta Dv Unreachable
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+.Xr lispintro 4 ,
+.Xr map 4 ,
+.Xr mapstat 1 .
+.Rs
+.%A "L. Iannone"
+.%A "O. Bonaventure"
+.%T "OpenLISP Implementation Report"
+.%O "draft-iannone-openlisp-implementation-01.txt"
+.Re
+.Rs
+.%A "D. Farinacci"
+.%A "V. Fuller"
+.%A "D. Oran"
+.%A "D. Meyer"
+.%T "Locator/ID Separation protocol (LISP)"
+.%O "draft-ietf-lisp-15.txt"
+.Re
+.Sh NOTE
+.Pp
+Please send any bug report or code contribution to the authors of
+OpenLISP.
+.Pp The MAPM_CHANGE message is not yet implemented.
+.Sh AUTHORS
+Luigi Iannone <ggx@openlisp.org>
+.Sh HISTORY
+The
+.Nm
+utility appeared in
+.Fx 7.0 . 

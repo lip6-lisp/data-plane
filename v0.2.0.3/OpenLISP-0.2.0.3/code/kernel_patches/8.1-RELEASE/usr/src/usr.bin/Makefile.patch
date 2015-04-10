@@ -1,0 +1,12 @@
+*** /usr/src/usr.bin/Makefile.original	Wed Aug  4 18:26:05 2010
+--- /usr/src/usr.bin/Makefile	Wed Aug  4 18:26:43 2010
+***************
+*** 119,124 ****
+--- 119,125 ----
+  	${_mail} \
+  	${_make} \
+  	${_makewhatis} \
++ 	mapstat \
+  	mesg \
+  	minigzip \
+  	ministat \

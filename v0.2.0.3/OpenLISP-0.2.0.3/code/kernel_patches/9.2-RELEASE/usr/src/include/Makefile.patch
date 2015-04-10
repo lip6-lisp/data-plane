@@ -1,0 +1,12 @@
+*** Makefile.orig	Sat Mar 22 16:31:53 2014
+--- Makefile	Sat Mar 22 17:32:31 2014
+***************
+*** 53,58 ****
+--- 53,59 ----
+  	geom/mirror geom/mountver geom/multipath geom/nop \
+  	geom/raid geom/raid3 geom/shsec geom/stripe geom/virstor \
+  	netgraph/atm netgraph/netflow \
++ 	net/lisp \
+  	security/audit \
+  	security/mac_biba security/mac_bsdextended security/mac_lomac \
+  	security/mac_mls security/mac_partition \

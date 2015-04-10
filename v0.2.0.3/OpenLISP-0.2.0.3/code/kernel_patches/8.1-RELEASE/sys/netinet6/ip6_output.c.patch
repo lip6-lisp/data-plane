@@ -1,0 +1,88 @@
+*** /usr/src/sys/netinet6/ip6_output.c.original	Wed Aug  4 17:34:45 2010
+--- /usr/src/sys/netinet6/ip6_output.c	Wed Aug  4 17:41:34 2010
+***************
+*** 67,72 ****
+--- 67,73 ----
+  #include "opt_inet6.h"
+  #include "opt_ipsec.h"
+  #include "opt_sctp.h"
++ #include "opt_lisp.h"
+  
+  #include <sys/param.h>
+  #include <sys/kernel.h>
+***************
+*** 88,93 ****
+--- 89,98 ----
+  #include <net/vnet.h>
+  
+  #include <netinet/in.h>
++ #ifdef LISP
++ #include <netinet/in_systm.h>
++ #include <netinet/ip.h>
++ #endif /* LISP */
+  #include <netinet/in_var.h>
+  #include <netinet6/in6_var.h>
+  #include <netinet/ip6.h>
+***************
+*** 97,102 ****
+--- 102,114 ----
+  #include <netinet/tcp_var.h>
+  #include <netinet6/nd6.h>
+  
++ #ifdef LISP
++ #include <net/lisp/lisp.h>
++ #include <net/lisp/maptables.h>
++  
++ #include <netinet6/lisp6/ip6_lisp6.h>
++ #endif /* LISP */
++ 
+  #ifdef IPSEC
+  #include <netipsec/ipsec.h>
+  #include <netipsec/ipsec6.h>
+***************
+*** 224,229 ****
+--- 236,246 ----
+  	struct secpolicy *sp = NULL;
+  #endif /* IPSEC */
+  
++ #ifdef LISP
++         struct eidmap *  local_map = NULL;
++         struct eidmap *  remote_map = NULL;
++ #endif /* LISP */
++ 
+  	ip6 = mtod(m, struct ip6_hdr *);
+  	if (ip6 == NULL) {
+  		printf ("ip6 is NULL");
+***************
+*** 459,464 ****
+--- 476,505 ----
+  
+  	V_ip6stat.ip6s_localout++;
+  
++ #ifdef LISP
++         /*  GgX - Before perform normal routing check if we have to
++          *  perform LISP encap.
++          *  If no encapsulation is possible we continue with 
++          * "traditional" operation (kind of fall-back 
++          * approach.
++          */
++   
++         hlen = sizeof(struct ip6_hdr); /* XXX - Be sure hlen is initialized */
++  
++         if ( ((error = lisp_ip6_mapencap( &m, flags, &local_map,
++                                               &remote_map)) == 0)
++              && local_map ) {
++                            
++                   error = lisp6_output(m, hlen, local_map, remote_map);
++                   goto done; 
++                                
++         } else if (error) {
++ 
++                   goto bad;
++ 
++         };
++ #endif /* LISP */
++ 
+  	/*
+  	 * Route packet.
+  	 */

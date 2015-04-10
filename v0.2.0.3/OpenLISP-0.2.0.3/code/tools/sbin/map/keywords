@@ -1,0 +1,17 @@
+
+add
+delete
+get
+flush
+all
+database
+cache
+inet
+inet6 
+monitor
+negative
+nostatic
+static
+version
+locbits
+

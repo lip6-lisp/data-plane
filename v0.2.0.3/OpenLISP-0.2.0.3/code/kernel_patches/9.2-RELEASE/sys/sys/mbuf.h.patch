@@ -1,0 +1,25 @@
+*** mbuf.h.orig	Sat Mar 22 16:21:56 2014
+--- mbuf.h	Sat Mar 22 17:24:27 2014
+***************
+*** 37,42 ****
+--- 37,43 ----
+  /* XXX: These includes suck. Sorry! */
+  #include <sys/queue.h>
+  #ifdef _KERNEL
++ #include "opt_lisp.h"
+  #include <sys/systm.h>
+  #include <vm/uma.h>
+  #ifdef WITNESS
+***************
+*** 960,965 ****
+--- 961,970 ----
+  #define	PACKET_TAG_IPSEC_NAT_T_PORTS		29 /* two uint16_t */
+  #define	PACKET_TAG_ND_OUTGOING			30 /* ND outgoing */
+  
++ #ifdef LISP
++ #define	PACKET_TAG_MAPSOCKFAM			30 /* mapsock sa family */
++ #endif /* LISP */
++ 
+  /* Specific cookies and tags. */
+  
+  /* Packet tag routines. */
