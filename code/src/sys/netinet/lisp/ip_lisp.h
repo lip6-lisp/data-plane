@@ -44,7 +44,7 @@ int lisp_check_ip_mappings(struct mbuf **, struct sockaddr_storage *,
 			   struct sockaddr_storage *, struct lispshimhdr *);
 
 int lisp_ip_encap(struct mbuf **, int, struct in_addr *, struct in_addr *, 
-		  u_char, uint16_t);
+		  u_char, uint16_t, uint16_t);
 
 int lisp_ip_needencap(struct mbuf **);
 int lisp_ip_needdecap(struct mbuf **);
