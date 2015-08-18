@@ -83,8 +83,6 @@
  * Expunge Timer and args
  */
 
-struct callout maptable_xpg_timer[MAX_TABLES];
-
 struct xpgto_args maptable_xpgto_args[MAX_TABLES];
 
 struct maptable_xpg_arg {
@@ -148,7 +146,7 @@ sysctl_net_lisp_cache_xpg(SYSCTL_HANDLER_ARGS)
           /* Stop All Timers */
           for(i = 0; i < MAX_TABLES; i++) {
 
-	         callout_stop(&maptable_xpg_timer[i]);
+	         callout_stop(&maptable_xpgto_args[i].timer);
     
 	  };
 
@@ -180,9 +178,7 @@ lisp_cache_xpg_to(void * xpgargs)
         struct radix_node_head *rnh = ((struct xpgto_args *)xpgargs)->rnh;
 	struct maptable_xpg_arg arg;
 	struct timeval atv;
-	struct callout *timer;
-
-	MAPTABLETIMER(timer,(((struct xpgto_args *)xpgargs)->af_family));
+	struct callout *timer = &((struct xpgto_args *)xpgargs)->timer;
 
 	bzero(&arg, sizeof(arg));
 	arg.rnh = rnh;
