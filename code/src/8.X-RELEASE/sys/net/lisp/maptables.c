@@ -148,11 +148,10 @@ maptables_init(void)
 	} 
 	else {
 	  	/* Initialize Expunge Timer */
-	        callout_init(&maptable_xpg_timer[IPv4_EIDs_TABLE], 
+	        callout_init(&maptable_xpgto_args[IPv4_EIDs_TABLE].timer,
 			     CALLOUT_MPSAFE);
 		
 		maptable_xpgto_args[IPv4_EIDs_TABLE].rnh = map_tables[IPv4_EIDs_TABLE];
-		maptable_xpgto_args[IPv4_EIDs_TABLE].af_family = AF_INET;
 
 		lisp_cache_xpg_to((void *) &maptable_xpgto_args[IPv4_EIDs_TABLE]);
 
@@ -164,11 +163,10 @@ maptables_init(void)
 	} 
 	else {
 	  	/* Initialize Expunge Timer */
-	        callout_init(&maptable_xpg_timer[IPv4_FW_EIDs_TABLE], 
+	        callout_init(&maptable_xpgto_args[IPv4_FW_EIDs_TABLE].timer,
 			     CALLOUT_MPSAFE);
 		
 		maptable_xpgto_args[IPv4_FW_EIDs_TABLE].rnh = map_tables[IPv4_FW_EIDs_TABLE];
-		maptable_xpgto_args[IPv4_FW_EIDs_TABLE].af_family = AF_INET;
 
 		lisp_cache_xpg_to((void *) &maptable_xpgto_args[IPv4_FW_EIDs_TABLE]);
 
@@ -180,11 +178,10 @@ maptables_init(void)
 	}
 	else {
 	  	/* Initialize Expunge Timer */
-	        callout_init(&maptable_xpg_timer[IPv6_FW_EIDs_TABLE], 
+	        callout_init(&maptable_xpgto_args[IPv6_FW_EIDs_TABLE].timer,
 			     CALLOUT_MPSAFE);
 
 		maptable_xpgto_args[IPv6_FW_EIDs_TABLE].rnh = map_tables[IPv6_FW_EIDs_TABLE];
-		maptable_xpgto_args[IPv6_FW_EIDs_TABLE].af_family = AF_INET6;
 
 		lisp_cache_xpg_to((void *) &maptable_xpgto_args[IPv6_FW_EIDs_TABLE]);
 
@@ -198,11 +195,10 @@ maptables_init(void)
 	}
 	else {
 	  	/* Initialize Expunge Timer */
-	        callout_init(&maptable_xpg_timer[IPv6_EIDs_TABLE], 
+	        callout_init(&maptable_xpgto_args[IPv6_EIDs_TABLE].timer,
 			     CALLOUT_MPSAFE);
 
 		maptable_xpgto_args[IPv6_EIDs_TABLE].rnh = map_tables[IPv6_EIDs_TABLE];
-		maptable_xpgto_args[IPv6_EIDs_TABLE].af_family = AF_INET6;
 
 		lisp_cache_xpg_to((void *) &maptable_xpgto_args[IPv6_EIDs_TABLE]);
 

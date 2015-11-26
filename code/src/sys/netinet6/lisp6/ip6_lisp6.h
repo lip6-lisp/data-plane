@@ -41,7 +41,7 @@ int lisp_check_ip6_mappings(struct mbuf **, struct sockaddr_storage *,
 			    struct sockaddr_storage *, struct lispshimhdr *);
 
 int lisp_ip6_encap(struct mbuf **, int,	struct in6_addr *, struct in6_addr *,
-		   int, uint16_t);
+		   int, uint16_t, uint16_t);
 
 
 int lisp_ip6_needdecap(struct mbuf **, int, int);

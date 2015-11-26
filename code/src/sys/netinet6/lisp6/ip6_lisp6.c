@@ -530,13 +530,14 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 
 
 /* int 
-lisp_ip6_encap( m, len, srlocaddr, drlocaddr, hlim, usport)
+lisp_ip6_encap( m, len, srlocaddr, drlocaddr, hlim, usport, udport)
         struct mbuf ** m;
 	int len;
 	struct in6_addr * srlocaddr;
 	struct in6_addr * drlocaddr;
 	int hlim;
 	uint16_t usport;
+	uint16_t udport;
 { */
 int 
 lisp_ip6_encap(struct mbuf ** m,
@@ -544,7 +545,8 @@ lisp_ip6_encap(struct mbuf ** m,
 				struct in6_addr * srlocaddr,
 				struct in6_addr * drlocaddr,
 				int hlim,
-				uint16_t usport)
+				uint16_t usport,
+				uint16_t udport)
 {
        /*
 	* Calculate data length and get a mbuf for UDP, 
@@ -571,7 +573,7 @@ lisp_ip6_encap(struct mbuf ** m,
 
 	uh = (struct udphdr *)(mtod((*m), caddr_t) + sizeof(struct ip6_hdr));
 	uh->uh_sport = htons(usport);
- 	uh->uh_dport = htons(LISPDATA);
+	uh->uh_dport = htons(udport);
 	uh->uh_ulen = htons((u_short)plen);
 
 	uh->uh_sum = 0;    /* LISP uses udp checksum = 0 */
@@ -777,7 +779,7 @@ lisp6_output(m, hlen, local_map, remote_map)
 	struct locator * dstrloc;
 	int error = 0;
 	u_char saved_hlim;
-	uint16_t usrcport;
+	uint16_t usrcport, udstport;
 
 	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
 
@@ -885,6 +887,11 @@ lisp6_output(m, hlen, local_map, remote_map)
 
 	usrcport = get_lisp_srcport(&m);
 
+	/* natted destination have a specific port*/
+	udstport = (((struct sockaddr_in *)(srcrloc->rloc_addr))->sin_port)?
+		   (((struct sockaddr_in *)(srcrloc->rloc_addr))->sin_port):
+		   LISPDATA;
+
 	m = m_lisphdrprepend(m, remote_map, local_map, dstrloc, srcrloc);
 
 	if (m == NULL) {
@@ -906,7 +913,8 @@ lisp6_output(m, hlen, local_map, remote_map)
 						     &((struct sockaddr_in *)srcrloc->rloc_addr)->sin_addr, 	     
 						     &((struct sockaddr_in *)dstrloc->rloc_addr)->sin_addr, 	     
 						     ((u_char) saved_hlim),
-						     usrcport))){
+						     usrcport,
+						     udstport))){
 			
 		                lisp4stat.opackets++;
 				error = ip_output(m, NULL, NULL, IP_LISP, NULL, NULL);
@@ -927,7 +935,8 @@ lisp6_output(m, hlen, local_map, remote_map)
 						     &((struct sockaddr_in6 *)srcrloc->rloc_addr)->sin6_addr, 	     
 						     &((struct sockaddr_in6 *)dstrloc->rloc_addr)->sin6_addr, 
 						      saved_hlim,
-						      usrcport))) {
+						      usrcport,
+						      udstport))) {
 			
 		                lisp6stat.opackets++;
 				error = ip6_output(m, NULL, NULL, IP_LISP, NULL, NULL, NULL);

@@ -38,24 +38,12 @@
 
 #include <net/lisp/maptables.h>
 
-#define MAPTABLETIMER(m,t)					\
-        if (t == AF_INET) {					\
-	       m = &maptable_xpg_timer[IPv4_EIDs_TABLE];	\
-	} else if (t == AF_INET6) {                             \
-	       m = &maptable_xpg_timer[IPv6_EIDs_TABLE];	\
-	       } else { m = NULL; }
-
-
 /*
  * Expunge Timer
  */
-extern struct callout maptable_xpg_timer[];
-
 struct xpgto_args {
-
-  struct radix_node_head *rnh;
-  int af_family;
-
+	struct callout timer;
+	struct radix_node_head *rnh;
 };
 
 extern struct xpgto_args maptable_xpgto_args[];
