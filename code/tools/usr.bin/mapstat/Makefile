@@ -40,8 +40,14 @@ MAN= 	mapstat.1
 
 SRCS=   if.c inet.c main.c mbuf.c mroute.c route.c \
         unix.c atalk.c mroute6.c ipsec.c bpf.c pfkey.c \
-	sctp.c lisp.c
+	sctp.c lisp.c 
 
+OSVERSION!= sysctl -n kern.osreldate
+.if ${OSVERSION} >= 1001000   # Starting 10.1 we have netisr.c and flowtable.c
+SRCS+= netisr.c flowtable.c
+.endif
+
+	
 WARNS?= 3
 CFLAGS+=-fno-strict-aliasing
 

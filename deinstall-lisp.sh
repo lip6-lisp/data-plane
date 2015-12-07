@@ -147,64 +147,22 @@ setvar VERSION $(uname -r)
 
 case "$VERSION" in
 
-#    7.3-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-#    7.2-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-#    7.1-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-#    7.0-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-#    8.0-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-#    8.0-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-#    8.1-RELEASE)
-#	echo "$VERSION"
-#	echo
-#        break;;
-
-    7.3-RELEASE)
+    7.3-RELEASE | 7.4-RELEASE)
 	echo "$VERSION Supported"
 	echo
         break;;
-
-    7.4-RELEASE)
-	echo "$VERSION Supported"
-	echo
-        break;;
-
-    8.1-RELEASE)
+    
+    8.1-RELEASE | 8.2-RELEASE | 8.4-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;
-
-    8.2-RELEASE)
-	echo "$VERSION  Supported"
-	echo
-        break;;
+    
     9.2-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;
-    10.0-RELEASE)
+	
+    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;

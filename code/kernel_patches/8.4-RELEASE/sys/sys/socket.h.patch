@@ -1,0 +1,59 @@
+*** /sys/sys/socket.h.original	Tue Jun 28 13:32:47 2011
+--- /sys/sys/socket.h	Tue Jun 28 13:36:53 2011
+***************
+*** 212,218 ****
+  #define	AF_ARP		35
+  #define	AF_BLUETOOTH	36		/* Bluetooth sockets */
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+! #define	AF_MAX		38
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+--- 212,225 ----
+  #define	AF_ARP		35
+  #define	AF_BLUETOOTH	36		/* Bluetooth sockets */
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+! #define AF_MAP          38              /* MAP Family to create
+!                                          * Mapping Sockets in order to 
+!                                          * Manage mappings from the 
+!                                          * user space.
+!                                          */
+! #define AF_MAX          39              /* XXX - Conflicts with 
+!                                          * AF_VENDOR00
+!                                          */
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+***************
+*** 353,358 ****
+--- 360,366 ----
+  #define PF_SCLUSTER	AF_SCLUSTER
+  #define	PF_ARP		AF_ARP
+  #define	PF_BLUETOOTH	AF_BLUETOOTH
++ #define PF_MAP          AF_MAP
+  
+  #define	PF_MAX		AF_MAX
+  
+***************
+*** 402,407 ****
+--- 410,429 ----
+  	{ "netgraph", CTLTYPE_NODE }, \
+  	{ "snp", CTLTYPE_NODE }, \
+  	{ "scp", CTLTYPE_NODE }, \
++         { "maptbl", CTLTYPE_NODE }, \
++ }
++  
++ /*
++  * PF_MAP - OpenLISP Support for LISP Mapping Tables
++  *
++  */
++ #define NET_MAPTBL_DUMP         1     /* dump */
++ #define NET_MAPTBL_FLAGS        2     /* flags */
++ #define NET_MAPTBL_MAXID        3
++   
++ #define CTL_NET_MAPTBL_NAMES { \
++       { 0, 0 }, \
++       { "dump", CTLTYPE_STRUCT }, \
+  }
+  
+  /*

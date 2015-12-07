@@ -396,6 +396,7 @@ int     Xflag;          /* show mapping tables (or mapping stats) */
 int	sflag;		/* show protocol statistics */
 int	tflag;		/* show i/f watchdog timers */
 int	Wflag;		/* wide display */
+int     Tflag;          /* TCP Information */
 int	xflag;		/* extra information, includes all socket buffer info */
 int	zflag;		/* zero stats */
 

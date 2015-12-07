@@ -1,0 +1,47 @@
+*** /sys/conf/files.original	Tue Jun 28 13:20:37 2011
+--- /sys/conf/files	Tue Jun 28 13:23:54 2011
+***************
+*** 2381,2386 ****
+--- 2381,2394 ----
+  net/zlib.c			optional crypto | geom_uzip | ipsec | \
+  					 mxge | netgraph_deflate | \
+  					 ddb_ctf
++ #
++ # OpenLISP Support for LISP (Locator/ID Separation Protocol)
++ #
++ net/lisp/maptables.c		optional inet inet6 lisp
++ net/lisp/mapsock.c		optional inet inet6 lisp
++ net/lisp/lisp.c			optional inet inet6 lisp
++ net/lisp/maptables_xpg.c	optional inet inet6 lisp
++ #
+  net80211/ieee80211.c		optional wlan
+  net80211/ieee80211_acl.c	optional wlan wlan_acl
+  net80211/ieee80211_action.c	optional wlan
+***************
+*** 2587,2592 ****
+--- 2595,2605 ----
+  netinet/libalias/alias_proxy.c	optional libalias inet | netgraph_nat inet
+  netinet/libalias/alias_util.c	optional libalias inet | netgraph_nat inet
+  netinet/libalias/alias_sctp.c	optional libalias inet | netgraph_nat inet
++ #
++ # OpenLISP Support for LISP (Locator/ID Separation Protocol)
++ #
++ netinet/lisp/ip_lisp.c		optional inet inet6 lisp
++ #
+  netinet6/dest6.c		optional inet6
+  netinet6/frag6.c		optional inet6
+  netinet6/icmp6.c		optional inet6
+***************
+*** 2614,2619 ****
+--- 2627,2637 ----
+  netinet6/scope6.c		optional inet6
+  netinet6/sctp6_usrreq.c		optional inet6 sctp
+  netinet6/udp6_usrreq.c		optional inet6
++ #
++ # OpenLISP Support for LISP (Locator/ID Separation Protocol)
++ #
++ netinet6/lisp6/ip6_lisp6.c	optional inet inet6 lisp
++ #
+  netipsec/ipsec.c		optional ipsec inet | ipsec inet6
+  netipsec/ipsec_input.c		optional ipsec inet | ipsec inet6
+  netipsec/ipsec_mbuf.c		optional ipsec inet | ipsec inet6

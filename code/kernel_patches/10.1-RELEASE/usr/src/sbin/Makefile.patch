@@ -1,0 +1,13 @@
+*** /usr/src/sbin/Makefile.orgi	Tue Feb 25 18:28:08 2014
+--- /usr/src/sbin/Makefile	Tue Feb 25 18:28:12 2014
+***************
+*** 41,46 ****
+--- 41,48 ----
+  	kldstat \
+  	kldunload \
+  	ldconfig \
++ 	map \
++ 	mapd \
+  	md5 \
+  	mdconfig \
+  	mdmfs \

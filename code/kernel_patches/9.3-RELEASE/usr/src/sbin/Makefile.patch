@@ -1,0 +1,13 @@
+*** Makefile.orig	Sat Mar 22 16:32:51 2014
+--- Makefile	Sat Mar 22 17:34:03 2014
+***************
+*** 41,46 ****
+--- 41,48 ----
+  	kldstat \
+  	kldunload \
+  	ldconfig \
++ 	map \
++  	mapd \
+  	md5 \
+  	mdconfig \
+  	mdmfs \

@@ -1,0 +1,12 @@
+*** /usr/src/usr.bin/Makefile.orgi	Tue Feb 25 18:32:00 2014
+--- /usr/src/usr.bin/Makefile	Tue Feb 25 18:32:01 2014
+***************
+*** 100,105 ****
+--- 100,106 ----
+  	${_makewhatis} \
+  	${_man} \
+  	mandoc \
++ 	mapstat \
+  	mesg \
+  	minigzip \
+  	ministat \

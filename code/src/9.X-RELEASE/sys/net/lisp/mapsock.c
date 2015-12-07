@@ -480,18 +480,18 @@ map_output(struct mbuf *m, struct socket *so)
 
        /* Checks if the eidmask is already in the radix 
 	*/
-	if (mapinfo.mapi_info[MAPX_EIDMASK]) {
-	        struct radix_node *t;
-		t = rn_addmask((caddr_t) mapinfo.mapi_info[MAPX_EIDMASK], 0, 1);
-		if (t != NULL &&
-		    bcmp((char *)(void *)mapinfo.mapi_info[MAPX_EIDMASK] + 1,
-			 (char *)(void *)t->rn_key + 1,
-			 ((struct sockaddr *)t->rn_key)->sa_len - 1) == 0)
-		        mapinfo.mapi_info[MAPX_EIDMASK] = 
-			  (struct sockaddr_storage *)t->rn_key;
-		else
-		        senderr(ENOBUFS);
-	}
+//	if (mapinfo.mapi_info[MAPX_EIDMASK]) {
+//	        struct radix_node *t;
+//		t = rn_addmask((caddr_t) mapinfo.mapi_info[MAPX_EIDMASK], 0, 1);
+//		if (t != NULL &&
+//		    bcmp((char *)(void *)mapinfo.mapi_info[MAPX_EIDMASK] + 1,
+//			 (char *)(void *)t->rn_key + 1,
+//			 ((struct sockaddr *)t->rn_key)->sa_len - 1) == 0)
+//		        mapinfo.mapi_info[MAPX_EIDMASK] = 
+//			  (struct sockaddr_storage *)t->rn_key;
+//		else
+//		        senderr(ENOBUFS);
+//	}
   
 	/*
 	 * Verify that the caller has the appropriate privilege; MAPM_GET

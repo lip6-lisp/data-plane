@@ -7,7 +7,7 @@
     This is a modified version of OpenLISP (http://www.openlisp.org/) to support load balancing and two new functions: 
     LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR). 
 
-    Now added support for FreeBSD 9.2 and 10.0.
+    Now added support for FreeBSD 9.3 and 10.2.
 
 
 2.  INSTALL
@@ -17,17 +17,21 @@
     Following is very quick step by step to install a testbed OpenLISP (lines start with # mean command)
     
     2.1 Requirements:
-        + OS: FreeBSD 8.2, 9.2 or 10.0
+        + OS: FreeBSD 8.2, 9.2, 9.4, 10.0, 10.1 or 10.2
         + Lib: Libconfig
         + Kernel source code
-        + OpenLISP-0.2.0.2
+        + OpenLISP
     
     2.2 Install
 
     a. Step 1: Install FreeBSD
 	The ISO file and documents can be retrieved from http://www.freebsd.org/
     
-    b. Step 2: Install Libconfig package from ports collection
+    b. Step 2: Install Libconfig package using either the management tools package:
+
+	#pkg install libconfig
+	
+	or from ports collection
         
         #cd /usr/ports/devel/libconfig/
         #make clean install
@@ -48,7 +52,7 @@
 
     d. Step 4: Install OpenLISP (Note: it could take more than 30 minutes, depend on the system)
     
-    Source code and documents (version 0.2.0.2) can be retrieved 
+    Source code and documents can be retrieved 
     from https://github.com/lip6-lisp/data-plane
 	
     From the source code directory, run the shell script to patch the kernel source code

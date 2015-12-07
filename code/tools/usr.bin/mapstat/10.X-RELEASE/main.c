@@ -1,39 +1,5 @@
 /*- /usr/src/usr.bin/mapstat/main.c
- * 
- * Copyright (c) 2010 - 2011 The OpenLISP Project
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- *  Contributors: 
- *               Luigi Iannone <ggx@openlisp.org>
- *
- * $Id: main.c 182 2011-09-22 16:11:37Z ggx $
- *
- */
-
-/*-
  * Copyright (c) 1983, 1988, 1993
  *	Regents of the University of California.  All rights reserved.
  *
@@ -45,10 +11,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
@@ -64,6 +26,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Id: main.c 49 2015-04-17 09:06:14Z ggx@gigix.net $
+ *
  */
 
 #ifndef lint
@@ -79,7 +44,7 @@ static char sccsid[] = "@(#)main.c	8.4 (Berkeley) 3/1/94";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: src/usr.bin/netstat/main.c,v 1.96.2.3.2.1 2010/06/14 02:09:06 kensmith Exp $");
+__FBSDID("$FreeBSD: releng/10.1/usr.bin/netstat/main.c 265701 2014-05-08 19:35:12Z melifaro $");
 
 #include <sys/param.h>
 #include <sys/file.h>
@@ -108,13 +73,13 @@ __FBSDID("$FreeBSD: src/usr.bin/netstat/main.c,v 1.96.2.3.2.1 2010/06/14 02:09:0
 #include <unistd.h>
 #include "netstat.h"
 #include "mapstat.h"
- 
+
 #include <net/lisp/lisp.h>
 #include <net/lisp/maptables.h>
 
 static struct nlist nl[] = {
 #define	N_IFNET		0
-	{ .n_name = "_ifnet" },
+	{ .n_name = "_ifnet" },		/* XXXGL: can be deleted */
 #define	N_RTSTAT	1
 	{ .n_name = "_rtstat" },
 #define	N_RTREE		2
@@ -155,81 +120,63 @@ static struct nlist nl[] = {
 	{ .n_name = "_mif6table" },
 #define	N_PFKEYSTAT	20
 	{ .n_name = "_pfkeystat" },
-#define	N_MBSTAT	21
-	{ .n_name = "_mbstat" },
-#define	N_MBTYPES	22
-	{ .n_name = "_mbtypes" },
-#define	N_NMBCLUSTERS	23
-	{ .n_name = "_nmbclusters" },
-#define	N_NMBUFS	24
-	{ .n_name = "_nmbufs" },
-#define	N_MBHI		25
-	{ .n_name = "_mbuf_hiwm" },
-#define	N_CLHI		26
-	{ .n_name = "_clust_hiwm" },
-#define	N_NCPUS		27
-	{ .n_name = "_smp_cpus" },
-#define	N_PAGESZ	28
-	{ .n_name = "_pagesize" },
-#define	N_MBPSTAT	29
-	{ .n_name = "_mb_statpcpu" },
-#define	N_RTTRASH	30
+#define	N_RTTRASH	21
 	{ .n_name = "_rttrash" },
-#define	N_MBLO		31
-	{ .n_name = "_mbuf_lowm" },
-#define	N_CLLO		32
-	{ .n_name = "_clust_lowm" },
-#define	N_CARPSTAT	33
+#define	N_CARPSTAT	22
 	{ .n_name = "_carpstats" },
-#define	N_PFSYNCSTAT	34
+#define	N_PFSYNCSTAT	23
 	{ .n_name = "_pfsyncstats" },
-#define	N_AHSTAT	35
+#define	N_AHSTAT	24
 	{ .n_name = "_ahstat" },
-#define	N_ESPSTAT	36
+#define	N_ESPSTAT	25
 	{ .n_name = "_espstat" },
-#define	N_IPCOMPSTAT	37
+#define	N_IPCOMPSTAT	26
 	{ .n_name = "_ipcompstat" },
-#define	N_TCPSTAT	38
+#define	N_TCPSTAT	27
 	{ .n_name = "_tcpstat" },
-#define	N_UDPSTAT	39
+#define	N_UDPSTAT	28
 	{ .n_name = "_udpstat" },
-#define	N_IPSTAT	40
+#define	N_IPSTAT	29
 	{ .n_name = "_ipstat" },
-#define	N_ICMPSTAT	41
+#define	N_ICMPSTAT	30
 	{ .n_name = "_icmpstat" },
-#define	N_IGMPSTAT	42
+#define	N_IGMPSTAT	31
 	{ .n_name = "_igmpstat" },
-#define	N_PIMSTAT	43
+#define	N_PIMSTAT	32
 	{ .n_name = "_pimstat" },
-#define	N_TCBINFO	44
+#define	N_TCBINFO	33
 	{ .n_name = "_tcbinfo" },
-#define	N_UDBINFO	45
+#define	N_UDBINFO	34
 	{ .n_name = "_udbinfo" },
-#define	N_DIVCBINFO	46
+#define	N_DIVCBINFO	35
 	{ .n_name = "_divcbinfo" },
-#define	N_RIPCBINFO	47
+#define	N_RIPCBINFO	36
 	{ .n_name = "_ripcbinfo" },
-#define	N_UNP_COUNT	48
+#define	N_UNP_COUNT	37
 	{ .n_name = "_unp_count" },
-#define	N_UNP_GENCNT	49
+#define	N_UNP_GENCNT	38
 	{ .n_name = "_unp_gencnt" },
-#define	N_UNP_DHEAD	50
+#define	N_UNP_DHEAD	39
 	{ .n_name = "_unp_dhead" },
-#define	N_UNP_SHEAD	51
+#define	N_UNP_SHEAD	40
 	{ .n_name = "_unp_shead" },
-#define	N_RIP6STAT	52
+#define	N_RIP6STAT	41
 	{ .n_name = "_rip6stat" },
-#define	N_SCTPSTAT	53
+#define	N_SCTPSTAT	42
 	{ .n_name = "_sctpstat" },
-#define	N_MFCTABLESIZE	54
+#define	N_MFCTABLESIZE	43
 	{ .n_name = "_mfctablesize" },
-#define N_ARPSTAT       55
+#define	N_ARPSTAT       44
 	{ .n_name = "_arpstat" },
+#define	N_UNP_SPHEAD	45
+	{ .n_name = "unp_sphead" },
+#define	N_SFSTAT	46
+	{ .n_name = "_sfstat"},
 #ifdef LISP
-#define N_MAPTREE       56
-        { .n_name = "_map_tables" },
-#define N_LISPSTAT      57
-        { .n_name = "_lispstat" },
+#define N_MAPTREE       47
+    { .n_name = "_map_tables" },
+#define N_LISPSTAT      48
+    { .n_name = "_lispstat" },
 #endif /* LISP */
 	{ .n_name = NULL },
 };
@@ -255,6 +202,10 @@ struct protox {
 	{ -1,		N_SCTPSTAT,	1,	sctp_protopr,
 	  sctp_stats,	NULL,		"sctp",	1,	IPPROTO_SCTP },
 #endif
+#ifdef SDP
+	{ -1,		-1,		1,	protopr,
+	 NULL,		NULL,		"sdp",	1,	IPPROTO_TCP },
+#endif
 	{ N_DIVCBINFO,	-1,		1,	protopr,
 	  NULL,		NULL,		"divert", 1,	IPPROTO_DIVERT },
 	{ N_RIPCBINFO,	N_IPSTAT,	1,	protopr,
@@ -277,13 +228,15 @@ struct protox {
 	  pim_stats,	NULL,		"pim",	1,	IPPROTO_PIM },
 	{ -1,		N_CARPSTAT,	1,	NULL,
 	  carp_stats,	NULL,		"carp",	1,	0 },
+#ifdef PF
 	{ -1,		N_PFSYNCSTAT,	1,	NULL,
 	  pfsync_stats,	NULL,		"pfsync", 1,	0 },
+#endif
 	{ -1,		N_ARPSTAT,	1,	NULL,
 	  arp_stats,	NULL,		"arp", 1,	0 },
 #ifdef LISP
-        { -1,           N_LISPSTAT,     1,      protopr,
-          lisp_stats_wrapper,   NULL,           "lisp", 1,  0},
+    { -1,           N_LISPSTAT,     1,      protopr,
+    lisp_stats_wrapper,   NULL, "lisp",  1,  0},
 #endif /* LISP */
 	{ -1,		-1,		0,	NULL,
 	  NULL,		NULL,		NULL,	0,	0 }
@@ -299,6 +252,10 @@ struct protox ip6protox[] = {
 	  ip6_stats,	ip6_ifstats,	"ip6",	1,	IPPROTO_RAW },
 	{ N_RIPCBINFO,	N_ICMP6STAT,	1,	protopr,
 	  icmp6_stats,	icmp6_ifstats,	"icmp6", 1,	IPPROTO_ICMPV6 },
+#ifdef SDP
+	{ -1,		-1,		1,	protopr,
+	 NULL,		NULL,		"sdp",	1,	IPPROTO_TCP },
+#endif
 #ifdef IPSEC
 	{ -1,		N_IPSEC6STAT,	1,	NULL,
 	  ipsec_stats,	NULL,		"ipsec6", 0,	0 },
@@ -310,8 +267,8 @@ struct protox ip6protox[] = {
 	{ -1,		N_RIP6STAT,	1,	NULL,
 	  rip6_stats,	NULL,		"rip6",	1,	0 },
 #ifdef LISP
-        { -1,           N_LISPSTAT,     1,      protopr,
-          lisp_stats_wrapper,   NULL,   "lisp", 1,  0},
+    { -1,           N_LISPSTAT,     1,      protopr,
+        lisp_stats_wrapper,   NULL,   "lisp", 1,  0},
 #endif /* LSIP */
 	{ -1,		-1,		0,	NULL,
 	  NULL,		NULL,		NULL,	0,	0 }
@@ -389,13 +346,15 @@ int	noutputs = 0;	/* how much outputs before we exit */
 int	numeric_addr;	/* show addresses numerically */
 int	numeric_port;	/* show ports numerically */
 static int pflag;	/* show given protocol */
+int	Qflag;		/* show netisr information */
 int	rflag;		/* show routing tables (or routing stats) */
+int     Rflag;          /* show flow / RSS statistics */
 #ifdef LISP
-int     Xflag;          /* show mapping tables (or mapping stats) */
+int     Xflag;  /* show mapping tables (or mapping stats) */
 #endif /* LISP */
 int	sflag;		/* show protocol statistics */
-int	Tflag;		/* show i/f watchdog timers */
 int	Wflag;		/* wide display */
+int	Tflag;		/* TCP Information */
 int	xflag;		/* extra information, includes all socket buffer info */
 int	zflag;		/* zero stats */
 
@@ -412,11 +371,28 @@ main(int argc, char *argv[])
 {
 	struct protox *tp = NULL;  /* for printing cblocks & stats */
 	int ch;
+	int fib = -1;
+	char *endptr;
 
 	af = AF_UNSPEC;
 
-	while ((ch = getopt(argc, argv, "AaBbdf:ghI:iLlM:mN:np:q:rSstuWw:xzX")) != -1)
+	while ((ch = getopt(argc, argv, "46AaBbdF:f:ghI:iLlM:mN:np:Qq:rSTsuWw:xzX"))
+	    != -1)
 		switch(ch) {
+		case '4':
+#ifdef INET
+			af = AF_INET;
+#else
+			errx(1, "IPv4 support is not compiled in");
+#endif
+			break;
+		case '6':
+#ifdef INET6
+			af = AF_INET6;
+#else
+			errx(1, "IPv6 support is not compiled in");
+#endif
+			break;
 		case 'A':
 			Aflag = 1;
 			break;
@@ -431,6 +407,12 @@ main(int argc, char *argv[])
 			break;
 		case 'd':
 			dflag = 1;
+			break;
+		case 'F':
+			fib = strtol(optarg, &endptr, 0);
+			if (*endptr != '\0' ||
+			    (fib == 0 && (errno == EINVAL || errno == ERANGE)))
+				errx(1, "%s: invalid fib", optarg);
 			break;
 		case 'f':
 			if (strcmp(optarg, "ipx") == 0)
@@ -501,6 +483,9 @@ main(int argc, char *argv[])
 			}
 			pflag = 1;
 			break;
+		case 'Q':
+			Qflag = 1;
+			break;
 		case 'q':
 			noutputs = atoi(optarg);
 			if (noutputs != 0)
@@ -509,19 +494,16 @@ main(int argc, char *argv[])
 		case 'r':
 			rflag = 1;
 			break;
-#ifdef LISP
-                case 'X':
-                        Xflag = 1;
-                        break;
-#endif /* LISP */
 		case 's':
 			++sflag;
 			break;
+#ifdef LISP
+        case 'X':
+            Xflag = 1;
+            break;
+#endif /* LISP */
 		case 'S':
 			numeric_addr = 1;
-			break;
-		case 't':
-			Tflag = 1;
 			break;
 		case 'u':
 			af = AF_UNIX;
@@ -533,6 +515,9 @@ main(int argc, char *argv[])
 		case 'w':
 			interval = atoi(optarg);
 			iflag = 1;
+			break;
+		case 'T':
+			Tflag = 1;
 			break;
 		case 'x':
 			xflag = 1;
@@ -573,6 +558,9 @@ main(int argc, char *argv[])
 	if (!live)
 		setgid(getgid());
 
+	if (xflag && Tflag) 
+		errx(1, "-x and -T are incompatible, pick one.");
+
 	if (Bflag) {
 		if (!live)
 			usage();
@@ -582,9 +570,17 @@ main(int argc, char *argv[])
 	if (mflag) {
 		if (!live) {
 			if (kread(0, NULL, 0) == 0)
-				mbpr(kvmd, nl[N_MBSTAT].n_value);
+				mbpr(kvmd, nl[N_SFSTAT].n_value);
 		} else
 			mbpr(NULL, 0);
+		exit(0);
+	}
+	if (Qflag) {
+		if (!live) {
+			if (kread(0, NULL, 0) == 0)
+				netisr_stats(kvmd);
+		} else
+			netisr_stats(NULL);
 		exit(0);
 	}
 #if 0
@@ -601,53 +597,55 @@ main(int argc, char *argv[])
 	 * used for the queries, which is slower.
 	 */
 #endif
-	kread(0, NULL, 0);
 	if (iflag && !sflag) {
-		intpr(interval, nl[N_IFNET].n_value, NULL);
+		intpr(interval, NULL, af);
 		exit(0);
 	}
 	if (rflag) {
-		if (sflag)
-			rt_stats(nl[N_RTSTAT].n_value, nl[N_RTTRASH].n_value);
-		else
-			routepr(nl[N_RTREE].n_value,-1);
+		if (sflag) {
+			rt_stats();
+			flowtable_stats();
+		} else
+			routepr(fib, af);
 		exit(0);
 	}
+
 #ifdef LISP
-        if (Xflag) {
-                if (sflag) {
-  
-                        map_stats();
-                        exit(0);
-  
-                } else {
-                        kread(0, 0, 0);
-                        mappr(nl[N_MAPTREE].n_value);
-                        exit(0);
-                };
+    if (Xflag) {
+        if (sflag) {
+            
+            map_stats();
+            exit(0);
+            
+        } else {
+            kread(0, 0, 0);
+            mappr(nl[N_MAPTREE].n_value);
+            exit(0);
         };
+    };
 #endif /* LISP */
+    
 	if (gflag) {
 		if (sflag) {
 			if (af == AF_INET || af == AF_UNSPEC)
-				mrt_stats(nl[N_MRTSTAT].n_value);
+				mrt_stats();
 #ifdef INET6
 			if (af == AF_INET6 || af == AF_UNSPEC)
-				mrt6_stats(nl[N_MRT6STAT].n_value);
+				mrt6_stats();
 #endif
 		} else {
 			if (af == AF_INET || af == AF_UNSPEC)
-				mroutepr(nl[N_MFCHASHTBL].n_value,
-					 nl[N_MFCTABLESIZE].n_value,
-					 nl[N_VIFTABLE].n_value);
+				mroutepr();
 #ifdef INET6
 			if (af == AF_INET6 || af == AF_UNSPEC)
-				mroute6pr(nl[N_MF6CTABLE].n_value,
-					  nl[N_MIF6TABLE].n_value);
+				mroute6pr();
 #endif
 		}
 		exit(0);
 	}
+
+	/* Load all necessary kvm symbols */
+	kresolve_list(nl);
 
 	if (tp) {
 		printproto(tp, tp->pr_name);
@@ -682,7 +680,8 @@ main(int argc, char *argv[])
 #endif /* NETGRAPH */
 	if ((af == AF_UNIX || af == AF_UNSPEC) && !sflag)
 		unixpr(nl[N_UNP_COUNT].n_value, nl[N_UNP_GENCNT].n_value,
-		    nl[N_UNP_DHEAD].n_value, nl[N_UNP_SHEAD].n_value, nl[N_UNP_SHEAD].n_value);
+		    nl[N_UNP_DHEAD].n_value, nl[N_UNP_SHEAD].n_value,
+		    nl[N_UNP_SPHEAD].n_value);
 	exit(0);
 }
 
@@ -692,9 +691,7 @@ main(int argc, char *argv[])
  * is not in the namelist, ignore this one.
  */
 static void
-printproto(tp, name)
-	struct protox *tp;
-	const char *name;
+printproto(struct protox *tp, const char *name)
 {
 	void (*pr)(u_long, const char *, int, int);
 	u_long off;
@@ -702,8 +699,7 @@ printproto(tp, name)
 	if (sflag) {
 		if (iflag) {
 			if (tp->pr_istats)
-				intpr(interval, nl[N_IFNET].n_value,
-				      tp->pr_istats);
+				intpr(interval, tp->pr_istats, af);
 			else if (pflag)
 				printf("%s: no per-interface stats routine\n",
 				    tp->pr_name);
@@ -766,19 +762,28 @@ kvmd_init(void)
 		return (-1);
 	}
 
-	if (kvm_nlist(kvmd, nl) < 0) {
+	return (0);
+}
+
+/*
+ * Resolve symbol list, return 0 on success.
+ */
+int
+kresolve_list(struct nlist *_nl)
+{
+
+	if ((kvmd == NULL) && (kvmd_init() != 0))
+		return (-1);
+
+	if (_nl[0].n_type != 0)
+		return (0);
+
+	if (kvm_nlist(kvmd, _nl) < 0) {
 		if (nlistf)
 			errx(1, "%s: kvm_nlist: %s", nlistf,
 			     kvm_geterr(kvmd));
 		else
 			errx(1, "kvm_nlist: %s", kvm_geterr(kvmd));
-	}
-
-	if (nl[0].n_type == 0) {
-		if (nlistf)
-			errx(1, "%s: no namelist", nlistf);
-		else
-			errx(1, "no namelist");
 	}
 
 	return (0);
@@ -790,31 +795,10 @@ kvmd_init(void)
 int
 kread(u_long addr, void *buf, size_t size)
 {
-	char errbuf[_POSIX2_LINE_MAX];
 
-	if (kvmd == NULL) {
-		kvmd = kvm_openfiles(nlistf, memf, NULL, O_RDONLY, errbuf);
-		setgid(getgid());
-		if (kvmd != NULL) {
-			if (kvm_nlist(kvmd, nl) < 0) {
-				if (nlistf)
-					errx(1, "%s: kvm_nlist: %s", nlistf,
-					     kvm_geterr(kvmd));
-				else
-					errx(1, "kvm_nlist: %s", kvm_geterr(kvmd));
-			}
+	if (kvmd_init() < 0)
+		return (-1);
 
-			if (nl[0].n_type == 0) {
-				if (nlistf)
-					errx(1, "%s: no namelist", nlistf);
-				else
-					errx(1, "no namelist");
-			}
-		} else {
-			warnx("kvm not available: %s", errbuf);
-			return(-1);
-		}
-	}
 	if (!buf)
 		return (0);
 	if (kvm_read(kvmd, addr, buf, size) != (ssize_t)size) {
@@ -822,6 +806,19 @@ kread(u_long addr, void *buf, size_t size)
 		return (-1);
 	}
 	return (0);
+}
+
+/*
+ * Read single counter(9).
+ */
+uint64_t
+kread_counter(u_long addr)
+{
+
+	if (kvmd_init() < 0)
+		return (-1);
+
+	return (kvm_counter_u64_fetch(kvmd, addr));
 }
 
 /*
@@ -845,6 +842,7 @@ kread_counters(u_long addr, void *buf, size_t size)
 	}
 	return (0);
 }
+
 const char *
 plural(uintmax_t n)
 {
@@ -912,21 +910,21 @@ static void
 usage(void)
 {
 	(void)fprintf(stderr, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
-"usage: mapstat [-AaLnSWx] [-f protocol_family | -p protocol]\n"
+"usage: mapstat [-46AaLnSTWxX] [-f protocol_family | -p protocol]\n"
 "               [-M core] [-N system]",
-"       mapstat -i | -I interface [-abdhntW] [-f address_family]\n"
+"       mapstat -i | -I interface [-46abdhnW] [-f address_family]\n"
 "               [-M core] [-N system]",
-"       mapstat -w wait [-I interface] [-d] [-M core] [-N system] [-q howmany]",
-"       mapstat -s [-s] [-z] [-f protocol_family | -p protocol]\n"
+"       mapstat -w wait [-I interface] [-46d] [-M core] [-N system] [-q howmany]",
+"       mapstat -s [-s] [-46z] [-f protocol_family | -p protocol]\n"
 "               [-M core] [-N system]",
-"       mapstat -i | -I interface -s [-f protocol_family | -p protocol]\n"
+"       mapstat -i | -I interface [-46s] [-f protocol_family | -p protocol]\n"
 "               [-M core] [-N system]",
 "       mapstat -m [-M core] [-N system]",
 "       mapstat -B [-I interface]",
-"       mapstat -r [-AanW] [-f address_family] [-M core] [-N system]",
+"       mapstat -r [-46AanW] [-f address_family] [-M core] [-N system]",
 "       mapstat -rs [-s] [-M core] [-N system]",
-"       mapstat -g [-W] [-f address_family] [-M core] [-N system]",
-"       mapstat -gs [-s] [-f address_family] [-M core] [-N system]",
-"       mapstat -s [-X] [-s] [-z] [-f protocol_family | -p protocol]\n");
+"       mapstat -g [-46W] [-f address_family] [-M core] [-N system]",
+"       mapstat -gs [-46s] [-f address_family] [-M core] [-N system]",
+"       mapstat -Q");
 	exit(1);
 }

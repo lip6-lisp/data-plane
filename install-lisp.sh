@@ -63,13 +63,13 @@ setvar OLMAPDFILES "usr/local/etc/rc.d/mapd usr/local/etc/mapd/mapd.conf usr/src
 
 setvar OLMAPDSYMLINKS "keywords proto-numbers"
 
-setvar OLMAPSTATFILES "mapstat.1 mapstat.h lisp.c"
+setvar OLMAPSTATFILES "Makefile mapstat.1 mapstat.h lisp.c"
 
-setvar OLMAPSTATVFILES "Makefile main.c"
+setvar OLMAPSTATVFILES "main.c"
 
 setvar OLMAPSTATSYMLINKS_7_X_RELEASE "atalk.c bpf.c if.c inet.c inet6.c ipsec.c ipx.c mbuf.c mcast.c mroute.c mroute6.c netgraph.c netstat.h pfkey.c route.c unix.c"
 
-setvar OLMAPSTATSYMLINKS_10_X_RELEASE "atalk.c bpf.c if.c inet.c inet6.c ipsec.c ipx.c mbuf.c mroute.c mroute6.c netgraph.c netstat.h pfkey.c route.c unix.c sctp.c"
+setvar OLMAPSTATSYMLINKS_10_X_RELEASE "atalk.c bpf.c if.c inet.c inet6.c ipsec.c ipx.c mbuf.c mroute.c mroute6.c netgraph.c netstat.h pfkey.c route.c unix.c sctp.c netisr.c flowtable.c"
 
 setvar OLMAPSTATSYMLINKS_9_X_RELEASE "atalk.c bpf.c if.c inet.c inet6.c ipsec.c ipx.c mbuf.c mroute.c mroute6.c netgraph.c netstat.h pfkey.c route.c unix.c sctp.c"
 
@@ -217,42 +217,28 @@ MAPSTATLIST="temp"
 
 case "$VERSION" in
 
-    7.3-RELEASE)
+    7.3-RELEASE | 7.4-RELEASE)
 	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_7_X_RELEASE}
 	BRANCH="7.X-RELEASE"
 	echo "$VERSION  Supported"
 	echo
         break;;
 
-    7.4-RELEASE)
-	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_7_X_RELEASE}
-	BRANCH="7.X-RELEASE"
-	echo "$VERSION  Supported"
-	echo
-        break;;
-
-    8.1-RELEASE)
+    8.1-RELEASE | 8.2-RELEASE | 8.4-RELEASE)
 	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_8_X_RELEASE}
 	BRANCH="8.X-RELEASE"
 	echo "$VERSION  Supported"
 	echo
         break;;
 
-    8.2-RELEASE)
-	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_8_X_RELEASE}
-	BRANCH="8.X-RELEASE"
-	echo "$VERSION  Supported"
-	echo
-        break;;
-	
-    9.2-RELEASE)
+    9.2-RELEASE | 9.3-RELEASE)
 	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_9_X_RELEASE}
 	BRANCH="9.X-RELEASE"
 	echo "$VERSION  Supported"
 	echo
         break;;
 
-    10.0-RELEASE)
+    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
 	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_10_X_RELEASE}
 	BRANCH="10.X-RELEASE"
 	echo "$VERSION  Supported"
@@ -394,11 +380,8 @@ echo
 
 echo "  Searching: /usr/ports/devel/libconfig"
 case "$VERSION" in
-    9.2-RELEASE)
-        LIBCONFIG=`pkg_info  -O devel/libconfig | grep "libconfig-"`
-        break;;
-
-    10.0-RELEASE)
+    
+    8.4-RELEASE | 9.2-RELEASE | 9.3-RELEASE | 10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
         LIBCONFIG=`pkg info  devel/libconfig | grep "libconfig-"`
         break;;
     *)
@@ -466,11 +449,23 @@ do
 
 done
 
+#Exception case for version > 10.0-RELEASE
+if [ "$VERSION" == "10.1-RELEASE" ] || [ "$VERSION" == "10.2-RELEASE" ]
+then
+	OLMAPSTATVFILES=$OLMAPSTATVFILES' lisp.c'
+fi
+	
 for I in $OLMAPSTATVFILES
 do 
 
     echo " Installing: /usr/src/usr.bin/mapstat/$I"
-    cp code/tools/usr.bin/mapstat/$BRANCH/$I /usr/src/usr.bin/mapstat/$I
+    #Exception case for 10.0-RELEASE
+    if [ "$VERSION" != "10.0-RELEASE" ]
+    then	
+	cp code/tools/usr.bin/mapstat/$BRANCH/$I /usr/src/usr.bin/mapstat/$I
+    else
+	cp code/tools/usr.bin/mapstat/$VERSION/$I /usr/src/usr.bin/mapstat/$I	
+    fi    
     CheckExit "$?" "0"
 
 done

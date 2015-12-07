@@ -1,0 +1,14 @@
+*** netisr.h.orig	Sat Mar 22 14:33:07 2014
+--- netisr.h	Sat Mar 22 15:33:48 2014
+***************
+*** 61,66 ****
+--- 61,69 ----
+  #define	NETISR_IPV6	10
+  #define	NETISR_NATM	11
+  #define	NETISR_EPAIR	12		/* if_epair(4) */
++ #ifdef LISP
++ #define NETISR_MAPPING 	13		/* mapping socket */
++ #endif /* LISP */
+  
+  /*
+   * Protocol ordering and affinity policy constants.  See the detailed

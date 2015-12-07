@@ -644,7 +644,8 @@ lisp_check_ip_mappings(m, drloc, srloc, lisphdr)
 		  if (lispmissmsg > LISP_MISSMSG_EID) {
 	
 	                  ip->ip_len = ntohs(ip->ip_len);
-			  ip->ip_off = ntohs(ip->ip_off);						
+			  ip->ip_off = ntohs(ip->ip_off);
+			  
 		  };
 
 		  map_notifymsg(MAPM_MISS, &info, NULL, m, 0, &error);
@@ -656,7 +657,8 @@ lisp_check_ip_mappings(m, drloc, srloc, lisphdr)
 		  if (lispmissmsg > LISP_MISSMSG_EID) {
 	
 	                 ip->ip_len = htons(ip->ip_len);
-			  ip->ip_off = htons(ip->ip_off);					
+			  ip->ip_off = htons(ip->ip_off);
+			  
 		  };
 	    
 		  break;
@@ -827,7 +829,7 @@ lisp_input(m, off)
 	
 	len = ntohs((u_short)uh->uh_ulen);
 		
-	if ( ip->ip_len != len) {
+	if (ip->ip_len != len) {
 	        if (len > ip->ip_len || 
 		    len < (sizeof(struct udphdr) + sizeof(struct lispshimhdr))) {
 			lisp4stat.ibadlen++;
@@ -1079,6 +1081,7 @@ lisp_output(m, hlen, local_map, remote_map)
 	switch (srcrloc->rloc_addr->ss_family) {
 	  
 	        case AF_INET:
+			
 		        if ( !(error = lisp_ip_encap(&m, (len + sizeof(struct lispshimhdr)), 
 						     &((struct sockaddr_in *)srcrloc->rloc_addr)->sin_addr, 	     
 						     &((struct sockaddr_in *)dstrloc->rloc_addr)->sin_addr, 

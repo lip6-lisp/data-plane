@@ -1,0 +1,58 @@
+*** /usr/src/sys/sys/socket.h.orgi	Tue Feb 25 17:57:02 2014
+--- /usr/src/sys/sys/socket.h	Wed Feb 26 10:06:48 2014
+***************
+*** 232,238 ****
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+  #define	AF_INET_SDP	40		/* OFED Socket Direct Protocol ipv4 */
+  #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
+! #define	AF_MAX		42
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+--- 232,245 ----
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+  #define	AF_INET_SDP	40		/* OFED Socket Direct Protocol ipv4 */
+  #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
+! #define AF_MAP          38              /* MAP Family to create
+!                                           * Mapping Sockets in order to 
+!                                           * Manage mappings from the 
+!                                           * user space.
+!                                           */
+! #define AF_MAX          42              /* XXX - Conflicts with 
+!                                           * AF_VENDOR00
+!                                           */
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+***************
+*** 357,362 ****
+--- 364,370 ----
+  #define	PF_IEEE80211	AF_IEEE80211
+  #define	PF_INET_SDP	AF_INET_SDP
+  #define	PF_INET6_SDP	AF_INET6_SDP
++ #define PF_MAP          AF_MAP
+  
+  #define	PF_MAX		AF_MAX
+  
+***************
+*** 371,376 ****
+--- 379,397 ----
+  #define NET_MAXID	AF_MAX
+  
+  /*
++  * PF_MAP - OpenLISP Support for LISP Mapping Tables
++  *
++  */
++ #define NET_MAPTBL_DUMP         1     /* dump */
++ #define NET_MAPTBL_FLAGS        2     /* flags */
++ #define NET_MAPTBL_MAXID        3
++    
++ #define CTL_NET_MAPTBL_NAMES { \
++        { 0, 0 }, \
++        { "dump", CTLTYPE_STRUCT }, \
++ }
++   
++ /*
+   * PF_ROUTE - Routing table
+   *
+   * Three additional levels are defined:

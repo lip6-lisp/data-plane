@@ -1,0 +1,13 @@
+*** /usr/src/sbin/Makefile.original	Fri Jul  1 11:29:03 2011
+--- /usr/src/sbin/Makefile	Fri Jul  1 11:30:02 2011
+***************
+*** 48,53 ****
+--- 48,55 ----
+  	kldstat \
+  	kldunload \
+  	ldconfig \
++ 	map \
++ 	mapd \
+  	${_mca} \
+  	md5 \
+  	mdconfig \
