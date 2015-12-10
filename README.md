@@ -70,7 +70,7 @@ Below is an example of kernel compilation. The full documentation to compile the
     	or
     	
     	#make buildkernel KERNCONF=OPENLISP_KERNEL -j n 
-        **replace n with the number of cpu you have to speed up the compilation process.**
+        **replace n with the number of CPU you have to speed up the compilation process.**
     	
     	#make installkernel KERNCONF=OPENLISP_KERNEL
     	
@@ -105,6 +105,7 @@ Note: reboot the system to load the new kernel, and use some commands to start w
 	#man mapstat
 	#mapstat –Xn
 	#mapstat -s -p lisp
+	#sysctl net.lisp
         
 ###### 3. Function switching
 

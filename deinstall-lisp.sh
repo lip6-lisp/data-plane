@@ -157,7 +157,7 @@ case "$VERSION" in
 	echo
         break;;
     
-    9.2-RELEASE)
+    9.2-RELEASE | 9.3-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;

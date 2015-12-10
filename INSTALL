@@ -17,7 +17,7 @@
     Following is very quick step by step to install a testbed OpenLISP (lines start with # mean command)
     
     2.1 Requirements:
-        + OS: FreeBSD 8.2, 9.2, 9.4, 10.0, 10.1 or 10.2
+        + OS: FreeBSD 8.2, 8.4, 9.2, 9.4, 10.0, 10.1 or 10.2
         + Lib: Libconfig
         + Kernel source code
         + OpenLISP
@@ -69,8 +69,13 @@
 
         + Rebuild a new kernel with a new configuration file
             #cd /usr/src
-            #make buildkernel KERNCONF=OPENLISP_KERNEL
-            #make installkernel KERNCONF=OPENLISP_KERNEL
+            
+	    #make buildkernel KERNCONF=OPENLISP_KERNEL
+	    or
+	    #make buildkernel KERNCONF=OPENLISP_KERNEL -j n 
+	    **replace n with the number of CPU you have to speed up the compilation process.**
+            
+	    #make installkernel KERNCONF=OPENLISP_KERNEL
 	Note: it could take more than 30 minutes, depend on the system
 
     e. Step 5: Installation of the OpenLISP tools
@@ -98,6 +103,7 @@ NOTE: reboot the system to load new kernel, and use some commands to start with 
             #man mapstat
             #mapstat –Xn
             #mapstat -s -p lisp
+	    #sysctl net.lisp
 
 3.  FUNCTION SWITCHING
 
