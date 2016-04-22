@@ -1,0 +1,14 @@
+*** /usr/src/sys/net/netisr.h.orig	Thu Apr 21 17:02:46 2016
+--- /usr/src/sys/net/netisr.h	Thu Apr 21 17:04:51 2016
+***************
+*** 62,67 ****
+--- 62,70 ----
+  #define	NETISR_NATM	11
+  #define	NETISR_EPAIR	12		/* if_epair(4) */
+
++ #ifdef LISP
++ #define NETISR_MAPPING 	13		/* mapping socket */
++ #endif /* LISP */
+  /*
+   * Protocol ordering and affinity policy constants.  See the detailed
+   * discussion of policies later in the file.

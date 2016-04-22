@@ -13,7 +13,7 @@
 #  4. Neither the name of the University nor the names of its contributors
 #     may be used to endorse or promote products derived from this software
 #     without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 #  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,10 +27,10 @@
 #  SUCH DAMAGE.
 #
 #
-#  This file performs the basic step to install LISP into a FreeBSD 
+#  This file performs the basic step to install LISP into a FreeBSD
 #  machine (supported versions: 7.3, 7.4, 8.1, and 8.2).
 #
-#  Contributors: 
+#  Contributors:
 #               Luigi Iannone <ggx@openlisp.org>
 #
 #
@@ -86,16 +86,16 @@ ReApplyPatch()
 	echo " (!) LISP Installation Aborted"
 	exit 1
     fi
-    patch -cNs $1 ./code/kernel_patches/$2/$1.patch 
+    patch -cNs $1 ./code/kernel_patches/$2/$1.patch
     if [ "$?" != "0" ]
     then
 	echo " Patching on original file failed again"
 	echo " (!) LISP Installation Aborted"
 	echo
-	exit 1 
+	exit 1
     else
 	echo
-	echo " Patching on original <$1>" 
+	echo " Patching on original <$1>"
         echo $OK
 	echo
     fi
@@ -108,8 +108,8 @@ ReApplyPatch()
 ApplyPatch()
 {
     echo  "   Patching: $1 "
-    patch -cNs $1 ./code/kernel_patches/$2/$1.patch 
-    if [ "$?" -eq "0" ] 
+    patch -cNs $1 ./code/kernel_patches/$2/$1.patch
+    if [ "$?" -eq "0" ]
     then
 	echo $OK
     else
@@ -123,27 +123,27 @@ ApplyPatch()
 	    stty -cbreak
 	    echo
 	    setvar RETRY 0
-	    case $ANSWER in  y*|Y*) 
+	    case $ANSWER in  y*|Y*)
 		    ReApplyPatch $1 $2 ;;
 	    esac
 	else
 	    ReApplyPatch $1 $2
 	fi
 	if [ "$RETRY" != "1" ]
-	then 
-	    echo -n " Skip this step and continue (not safe) [y/N]? " 
+	then
+	    echo -n " Skip this step and continue (not safe) [y/N]? "
 	    stty cbreak         # or  stty raw
 	    ANSWER=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
 	    stty -cbreak
 	    echo
-	    case $ANSWER in  y*|Y*) 
+	    case $ANSWER in  y*|Y*)
 		    setvar OK 1
-		    ;; 
+		    ;;
 	    esac
-	    if [ "$OK" != "1" ] 
-	    then 
+	    if [ "$OK" != "1" ]
+	    then
 		echo " (!) LISP Installation Interrupted"
-		exit 1 
+		exit 1
 	    fi
 	fi
    fi
@@ -153,7 +153,7 @@ ApplyPatch()
 #-------------------------------------------------------------------------
 CheckExit()
 {
-if [ "$1" -eq "$2" ] 
+if [ "$1" -eq "$2" ]
 then
     echo $OK
 else
@@ -171,9 +171,9 @@ if [ $? -ne 0 ]
 then
     echo
     echo "Usage: sh install-lisp.sh [-f]"
-    echo 
+    echo
     echo "  -f : Force - force script to try to find the original"
-    echo "       file when a patch seems to have been already" 
+    echo "       file when a patch seems to have been already"
     echo "       applied."
     echo
     exit 2
@@ -192,7 +192,7 @@ do
 done
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     LISP Installing Script"
 echo "--------------------------------------------------------"
@@ -200,13 +200,13 @@ echo
 
 if [ $(whoami) != "root" ]
 then
-    echo 
+    echo
     echo " You must be root to proceed!"
     echo
     exit 1
 fi
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Finding Correct Version"
 echo "--------------------------------------------------------"
@@ -238,13 +238,13 @@ case "$VERSION" in
 	echo
         break;;
 
-    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
+    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE | 10.3-RELEASE)
 	OLMAPSTATSYMLINKS=${OLMAPSTATSYMLINKS_10_X_RELEASE}
 	BRANCH="10.X-RELEASE"
 	echo "$VERSION  Supported"
 	echo
         break;;
-    *) 
+    *)
 	echo "$VERSION"
 	echo "Version Number non recognized (or not supported)"
 	echo
@@ -261,7 +261,7 @@ echo "--------------------------------------------------------"
 echo
 
 for I in $KERNPATCHFILES
-do 
+do
 
 ApplyPatch "$I" "$VERSION"
 
@@ -277,7 +277,7 @@ echo
 
 
 for I in $HEADERPATCHFILES
-do 
+do
 
     echo " Updating: /usr/include/$I"
     cp /sys/$I /usr/include/$I
@@ -287,31 +287,31 @@ done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Creating New Required Directories in the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 for I in $OLNEWDIRECTORIES
-do 
+do
 
     echo " Creating: $I"
     mkdir -p $I
-    CheckExit "$?" "0" 
+    CheckExit "$?" "0"
 
 done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding LISP Common Files to the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 for I in $OLCOMMONFILES
-do 
+do
 
     echo " Installing: $I"
     cp code/src$I $I
@@ -319,14 +319,14 @@ do
 
 done
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding LISP Version Specific Files to the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 for I in $OLVERSIONSPECIFICFILES
-do 
+do
 
     echo " Installing: $I"
     cp code/src/$BRANCH$I $I
@@ -343,7 +343,7 @@ echo "--------------------------------------------------------"
 echo
 
 for I in $OLHEADERFILES
-do 
+do
     echo " Updating: /usr/include/$I"
     cp /sys/$I /usr/include/$I
     CheckExit "$?" "0"
@@ -351,18 +351,18 @@ done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding MAP Files to the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 echo "   Creating: /usr/src/sbin/map/"
 mkdir -p /usr/src/sbin/map/
 CheckExit "$?" "0"
 
 for I in $OLMAPFILES
-do 
+do
 
     echo " Installing: /usr/src/sbin/map/$I"
     cp code/tools/sbin/map/$I /usr/src/sbin/map/$I
@@ -372,16 +372,16 @@ done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding MAPD Files to the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 echo "  Searching: /usr/ports/devel/libconfig"
 case "$VERSION" in
-    
-    8.4-RELEASE | 9.2-RELEASE | 9.3-RELEASE | 10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
+
+    8.4-RELEASE | 9.2-RELEASE | 9.3-RELEASE | 10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE | 10.3-RELEASE)
         LIBCONFIG=`pkg info  devel/libconfig | grep "libconfig-"`
         break;;
     *)
@@ -390,13 +390,13 @@ case "$VERSION" in
 esac
 
 
-if [ $LIBCONFIG ] 
+if [ $LIBCONFIG ]
 then
-    
+
     echo $OK
 
 else
-    
+
     echo $KO
 
 fi
@@ -412,7 +412,7 @@ do
 done
 
 for I in $OLMAPDFILES
-do  
+do
 
     echo " Installing: /$I"
     cp code/tools/sbin/mapd/$I /$I
@@ -421,7 +421,7 @@ do
 done
 
 for I in $OLMAPDSYMLINKS
-do  
+do
 
     echo "   Creating: /usr/src/sbin/mapd/$I"
     ln -sF ../map/$I /usr/src/sbin/mapd/$I
@@ -430,18 +430,18 @@ do
 done
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding MAPSTAT Files to the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 echo "   Creating: /usr/src/usr.bin/mapstat/"
 mkdir -p /usr/src/usr.bin/mapstat/
 CheckExit "$?" "0"
 
 for I in $OLMAPSTATFILES
-do 
+do
 
     echo " Installing: /usr/src/usr.bin/mapstat/$I"
     cp code/tools/usr.bin/mapstat/$I /usr/src/usr.bin/mapstat/$I
@@ -450,28 +450,35 @@ do
 done
 
 #Exception case for version > 10.0-RELEASE
-if [ "$VERSION" == "10.1-RELEASE" ] || [ "$VERSION" == "10.2-RELEASE" ]
+if [ "$VERSION" == "10.1-RELEASE" ] || [ "$VERSION" == "10.2-RELEASE" ] || [ "$VERSION" == "10.3-RELEASE" ]
 then
 	OLMAPSTATVFILES=$OLMAPSTATVFILES' lisp.c'
 fi
-	
+
 for I in $OLMAPSTATVFILES
-do 
+do
 
     echo " Installing: /usr/src/usr.bin/mapstat/$I"
     #Exception case for 10.0-RELEASE
     if [ "$VERSION" != "10.0-RELEASE" ]
-    then	
+    then
 	cp code/tools/usr.bin/mapstat/$BRANCH/$I /usr/src/usr.bin/mapstat/$I
     else
-	cp code/tools/usr.bin/mapstat/$VERSION/$I /usr/src/usr.bin/mapstat/$I	
-    fi    
+	cp code/tools/usr.bin/mapstat/$VERSION/$I /usr/src/usr.bin/mapstat/$I
+    fi
+
     CheckExit "$?" "0"
 
 done
 
+#Exception case for 10.3-RELEASE - need to other solution 
+if [ "$VERSION" == "10.3-RELEASE" ]
+then
+   cp code/tools/usr.bin/mapstat/$VERSION/main.c /usr/src/usr.bin/mapstat/
+fi
+
 for I in $OLMAPSTATSYMLINKS
-do  
+do
 
     echo "   Creating: /usr/src/usr.bin/mapstat/$I"
     ln -sF ../netstat/$I /usr/src/usr.bin/mapstat/$I
@@ -481,11 +488,11 @@ done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Adding OpenLISP Man Pages"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 ApplyPatch "/usr/src/share/man/man4/Makefile" "$VERSION"
 
@@ -500,14 +507,14 @@ CheckExit "$?" "0"
 
 # GgX - Ending remarks
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     LISP Files Successfully Installed!!! (you fool) "
 echo "--------------------------------------------------------"
-echo 
+echo
 if [ ! $LIBCONFIG ]
 then
-    echo "  >>>>>>>>>>>>>>>>>      IMPORTANT      <<<<<<<<<<<<<<<<<<<" 
+    echo "  >>>>>>>>>>>>>>>>>      IMPORTANT      <<<<<<<<<<<<<<<<<<<"
     echo "  The package /usr/ports/devel/libconfig was"
     echo "  not found. Please install it manually from the port"
     echo "  collection before continuing with OpenLISP installation."
@@ -519,7 +526,3 @@ echo "  Please read README for further information."
 echo
 echo "  Please, before proceeding, read the COPYRIGHT note."
 echo
-
-
-
- 

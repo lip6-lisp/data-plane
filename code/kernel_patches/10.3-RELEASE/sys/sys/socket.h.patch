@@ -1,0 +1,82 @@
+*** ../freebsd_10.3_src/usr/src/sys/sys/socket.h	Fri Mar 25 02:09:26 2016
+--- /usr/src/sys/sys/socket.h	Fri Apr 22 17:58:06 2016
+***************
+*** 232,238 ****
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+  #define	AF_INET_SDP	40		/* OFED Socket Direct Protocol ipv4 */
+  #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
+! #define	AF_MAX		42
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+--- 232,245 ----
+  #define	AF_IEEE80211	37		/* IEEE 802.11 protocol */
+  #define	AF_INET_SDP	40		/* OFED Socket Direct Protocol ipv4 */
+  #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
+! #define AF_MAP          38              /* MAP Family to create
+!                                          * Mapping Sockets in order to 
+!                                          * Manage mappings from the 
+!                                          * user space.
+!                                          */
+! #define AF_MAX          42              /* XXX - Conflicts with 
+!                                          * AF_VENDOR01
+!                                          */
+  /*
+   * When allocating a new AF_ constant, please only allocate
+   * even numbered constants for FreeBSD until 134 as odd numbered AF_
+***************
+*** 335,340 ****
+--- 342,348 ----
+  #define PF_LAT		AF_LAT
+  #define	PF_HYLINK	AF_HYLINK
+  #define	PF_APPLETALK	AF_APPLETALK
++ #define	AF_MAX		42
+  #define	PF_ROUTE	AF_ROUTE
+  #define	PF_LINK		AF_LINK
+  #define	PF_XTP		pseudo_AF_XTP	/* really just proto family, no AF */
+***************
+*** 357,363 ****
+  #define	PF_IEEE80211	AF_IEEE80211
+  #define	PF_INET_SDP	AF_INET_SDP
+  #define	PF_INET6_SDP	AF_INET6_SDP
+! 
+  #define	PF_MAX		AF_MAX
+  
+  /*
+--- 365,371 ----
+  #define	PF_IEEE80211	AF_IEEE80211
+  #define	PF_INET_SDP	AF_INET_SDP
+  #define	PF_INET6_SDP	AF_INET6_SDP
+! #define PF_MAP          AF_MAP
+  #define	PF_MAX		AF_MAX
+  
+  /*
+***************
+*** 369,375 ****
+   * Further levels are defined by the individual families below.
+   */
+  #define NET_MAXID	AF_MAX
+! 
+  /*
+   * PF_ROUTE - Routing table
+   *
+--- 377,395 ----
+   * Further levels are defined by the individual families below.
+   */
+  #define NET_MAXID	AF_MAX
+! /*
+!  * PF_MAP - OpenLISP Support for LISP Mapping Tables
+!  *
+!  */
+! #define NET_MAPTBL_DUMP         1     /* dump */
+! #define NET_MAPTBL_FLAGS        2     /* flags */
+! #define NET_MAPTBL_MAXID        3
+!     
+! #define CTL_NET_MAPTBL_NAMES { \
+!        { 0, 0 }, \
+!        { "dump", CTLTYPE_STRUCT }, \
+! }
+!  
+  /*
+   * PF_ROUTE - Routing table
+   *

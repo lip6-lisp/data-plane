@@ -13,7 +13,7 @@
 #  4. Neither the name of the University nor the names of its contributors
 #     may be used to endorse or promote products derived from this software
 #     without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 #  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 #  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,10 +26,10 @@
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
 #
-#  This file performs the basic step to uninstall LISP into a FreeBSD 
+#  This file performs the basic step to uninstall LISP into a FreeBSD
 #  machine (supported versions: 7.3, 7.4, 8.1, and 8.2).
 #
-#  Contributors: 
+#  Contributors:
 #               Luigi Iannone <ggx@openlisp.org>
 #
 #
@@ -67,7 +67,7 @@ RevertPatch()
 {
     echo  "   Un-Patching: $1 "
     cp $1.orig $1
-    if [ "$?" -eq "0" ] 
+    if [ "$?" -eq "0" ]
     then
 	echo $OK
 	rm $1.orig 2> /dev/null
@@ -85,7 +85,7 @@ RevertPatch()
 
 CheckExit()
 {
-if [ "$1" -eq "$2" ] 
+if [ "$1" -eq "$2" ]
 then
     echo $OK
 else
@@ -103,7 +103,7 @@ fi
 
 IgnoreExit()
 {
-if [ "$1" -eq "$2" ] 
+if [ "$1" -eq "$2" ]
 then
     echo " $3"
     echo $OK
@@ -114,16 +114,16 @@ else
     echo
     echo " The following file is not where expected:"
     echo " $3"
-    echo 
+    echo
     echo " Error Ignored (Should be safe)"
     echo $OK
-    echo 
+    echo
 fi
 }  # IgnoreExit
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     LISP De-Installing Script"
 echo "--------------------------------------------------------"
@@ -131,13 +131,13 @@ echo
 
 if [ $(whoami) != "root" ]
 then
-    echo 
+    echo
     echo " You must be root to proceed!"
     echo
     exit 1
 fi
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Finding Correct Version"
 echo "--------------------------------------------------------"
@@ -151,23 +151,23 @@ case "$VERSION" in
 	echo "$VERSION Supported"
 	echo
         break;;
-    
+
     8.1-RELEASE | 8.2-RELEASE | 8.4-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;
-    
+
     9.2-RELEASE | 9.3-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;
-	
-    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE)
+
+    10.0-RELEASE | 10.1-RELEASE | 10.2-RELEASE | 10.3-RELEASE)
 	echo "$VERSION  Supported"
 	echo
         break;;
 
-    *) 
+    *)
 	echo "$VERSION"
 	echo "Version Number non recognized (or not supported)"
 	echo
@@ -183,7 +183,7 @@ echo "--------------------------------------------------------"
 echo
 
 for I in $KERNPATCHFILES
-do 
+do
 
 RevertPatch "$I" "$VERSION"
 
@@ -198,7 +198,7 @@ echo "--------------------------------------------------------"
 echo
 
 for I in $HEADERPATCHFILES
-do 
+do
 
     echo " Deleting: /usr/include/$I"
     rm /usr/include/$I > /dev/null
@@ -207,7 +207,7 @@ do
 done
 
 for I in $HEADERPATCHFILES
-do 
+do
 
     echo " Put Back Original: /usr/include/$I"
     cp /sys/$I /usr/include/$I
@@ -217,29 +217,29 @@ done
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Deleting LISP Specific files from the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 for I in $OLNEWDIRECTORIES
-do 
+do
 
     echo " Deleting: $I"
     rm -r $I > /dev/null
-    CheckExit "$?" "0" 
+    CheckExit "$?" "0"
 
 done
 
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Deleting MAP Files from the Kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 echo "   Deleting: /usr/src/sbin/map/"
 rm -r /usr/src/sbin/map/ > /dev/null
@@ -257,11 +257,11 @@ IgnoreExit "$?" "0" "/usr/share/man/man8/map.8.gz"
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Deleting MAPD Files from the kernel"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 
 # Stop Running daemon if necessary
@@ -269,16 +269,16 @@ if [ -f /var/run/mapd.pid ]
 then
    echo "  Stopping running daemon"
    setvar MAPDPID $(cat /var/run/mapd.pid)
-   kill -s INT $MAPDPID 
+   kill -s INT $MAPDPID
    echo $OK
 fi
 
 for I in $OLMAPDDIRECTORIES
-do 
+do
 
     echo " Deleting: $I"
     rm -r $I > /dev/null
-    CheckExit "$?" "0" 
+    CheckExit "$?" "0"
 
 done
 
@@ -298,11 +298,11 @@ IgnoreExit "$?" "0" "/usr/share/man/man8/mapd.8.gz"
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Deleting MAPSTAT Files"
 echo "--------------------------------------------------------"
-echo 
+echo
 
 echo "   Deleting: /usr/src/usr.bin/mapstat/"
 rm -r /usr/src/usr.bin/mapstat/ > /dev/null
@@ -320,13 +320,13 @@ IgnoreExit "$?" "0" "/usr/share/man/man1/mapstat.1.gz"
 
 
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     Removing OpenLISP Man Pages"
 echo "--------------------------------------------------------"
-echo 
+echo
 
-RevertPatch "/usr/src/share/man/man4/Makefile" 
+RevertPatch "/usr/src/share/man/man4/Makefile"
 
 echo " Deleting: /usr/src/share/man/man4/map.4"
 rm /usr/src/share/man/man4/map.4 2> /dev/null
@@ -341,7 +341,7 @@ IgnoreExit "$?" "0" "  /usr/share/man/man4/map.4.gz"
 
 echo " Deleting: /usr/src/share/man/man4/lispintro.4"
 rm /usr/src/share/man/man4/lispintro.4 2> /dev/null
-CheckExit "$?" "0" 
+CheckExit "$?" "0"
 
 rm /usr/share/man/man4/lispintro.4.gz 2> /dev/null
 IgnoreExit "$?" "0" "  /usr/share/man/man4/lispintro.4.gz"
@@ -351,15 +351,11 @@ IgnoreExit "$?" "0" "  /usr/share/man/cat4/lispintro.4.gz"
 
 # GgX - Ending remarks
 
-echo 
+echo
 echo "--------------------------------------------------------"
 echo "     LISP Files Successfully Removed!!! (you smart) "
 echo "--------------------------------------------------------"
-echo 
+echo
 echo "  To complete the deinstallation you have to build and install"
 echo "  a new kernel. Please read README for further information."
 echo
-
-
-
- 

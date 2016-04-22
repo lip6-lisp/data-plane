@@ -1,65 +1,65 @@
 1.  INTRODUCTION
 
     The OpenLISP implements the data-plane of LISP (Locator/Identifier Separation Protocol).
-    Please refer to the IETF LISP drafts for a description of the LISP data plane and 
-    related functionalities.	
-    
-    This is a modified version of OpenLISP (http://www.openlisp.org/) to support load balancing and two new functions: 
-    LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR). 
+    Please refer to the IETF LISP drafts for a description of the LISP data plane and
+    related functionalities.
 
-    Now added support for FreeBSD 9.3 and 10.2.
+    This is a modified version of OpenLISP (http://www.openlisp.org/) to support load balancing and two new functions:
+    LISP Proxy Tunnel Router (PxTR) and Reencapsulating Tunnel Router (RTR).
+
+    Now added support for FreeBSD 9.3 and 10.3.
 
 
 2.  INSTALL
 
     For full guide, please refer to documents inside the source code.
-    
+
     Following is very quick step by step to install a testbed OpenLISP (lines start with # mean command)
-    
+
     2.1 Requirements:
-        + OS: FreeBSD 8.2, 8.4, 9.2, 9.4, 10.0, 10.1 or 10.2
+        + OS: FreeBSD 8.2, 8.4, 9.2, 9.3, 10.X (10.0, 10.1, 10.2, 10.3)
         + Lib: Libconfig
         + Kernel source code
         + OpenLISP
-    
+
     2.2 Install
 
     a. Step 1: Install FreeBSD
 	The ISO file and documents can be retrieved from http://www.freebsd.org/
-    
+
     b. Step 2: Install Libconfig package using either the management tools package:
 
 	#pkg install libconfig
-	
+
 	or from ports collection
-        
+
         #cd /usr/ports/devel/libconfig/
         #make clean install
-	
-        Note: if libconfig does not exist in ports collection, 
-        you need to update the ports collection by following theses commands 
+
+        Note: if libconfig does not exist in ports collection,
+        you need to update the ports collection by following theses commands
         (take over 10 minutes, depend on the bandwidth)
             #portsnap fetch
             #portsnap extract
             #portsnap fetch
             #portsnap update
 
-    c. Step 3: Install the complete source tree of FreeBSD 
-    including man pages and utilitiesKernel source code if it does not exist. 
-    The easiest way to install the full source tree is to run 
+    c. Step 3: Install the complete source tree of FreeBSD
+    including man pages and utilitiesKernel source code if it does not exist.
+    The easiest way to install the full source tree is to run
         #sysinstall
     as root, and then choosing Configure -> Distributions -> Src -> All
 
     d. Step 4: Install OpenLISP (Note: it could take more than 30 minutes, depend on the system)
-    
-    Source code and documents can be retrieved 
+
+    Source code and documents can be retrieved
     from https://github.com/lip6-lisp/data-plane
-	
+
     From the source code directory, run the shell script to patch the kernel source code
         #sh install-lisp.sh
 
-    Bellow is an example of kernel compilation. 
-    The full document to compil the kernel can be retrieved 
+    Bellow is an example of kernel compilation.
+    The full document to compil the kernel can be retrieved
     from: http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/makeworld.html
 
         + Make a new configuration file for a new kernel
@@ -69,17 +69,17 @@
 
         + Rebuild a new kernel with a new configuration file
             #cd /usr/src
-            
+
 	    #make buildkernel KERNCONF=OPENLISP_KERNEL
 	    or
-	    #make buildkernel KERNCONF=OPENLISP_KERNEL -j n 
+	    #make buildkernel KERNCONF=OPENLISP_KERNEL -j n
 	    **replace n with the number of CPU you have to speed up the compilation process.**
-            
+
 	    #make installkernel KERNCONF=OPENLISP_KERNEL
 	Note: it could take more than 30 minutes, depend on the system
 
     e. Step 5: Installation of the OpenLISP tools
-        
+
 	+ OpenLISP map: to manage OpenLISP mapping database
             #cd /usr/src/sbin/map/
             #make depend
@@ -107,6 +107,6 @@ NOTE: reboot the system to load new kernel, and use some commands to start with 
 
 3.  FUNCTION SWITCHING
 
-    Two new sysctl variables "net.lisp.function" and "net.lisp.xtr_te" have been added to OpenLISP to allow switching between 
-    functions and enable LISP-TE function on xTR. 
-    With "net.lisp.function" there are three available values: xtr, pxtr and rtr	
+    Two new sysctl variables "net.lisp.function" and "net.lisp.xtr_te" have been added to OpenLISP to allow switching between
+    functions and enable LISP-TE function on xTR.
+    With "net.lisp.function" there are three available values: xtr, pxtr and rtr

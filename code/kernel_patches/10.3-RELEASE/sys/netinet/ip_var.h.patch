@@ -1,0 +1,17 @@
+*** /usr/src/sys/netinet/ip_var.h.orig	Thu Apr 21 17:55:53 2016
+--- /usr/src/sys/netinet/ip_var.h	Thu Apr 21 17:58:25 2016
+***************
+*** 161,166 ****
+--- 161,172 ----
+  #define	IP_SENDTOIF		0x8		/* send on specific ifnet */
+  #define IP_ROUTETOIF		SO_DONTROUTE	/* 0x10 bypass routing tables */
+  #define IP_ALLOWBROADCAST	SO_BROADCAST	/* 0x20 can send broadcast packets */
++ #ifdef  LISP
++ #define IP_LISP                 0x40            /* GgX - LISP encapsulated
++                                                  * Do not check possible
++                                                  * encapsulation again.
++                                                  */
++ #endif  /* LISP */
+
+  #ifdef __NO_STRICT_ALIGNMENT
+  #define IP_HDR_ALIGNED_P(ip)	1

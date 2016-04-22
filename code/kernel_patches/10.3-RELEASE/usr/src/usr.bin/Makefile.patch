@@ -1,0 +1,12 @@
+*** /usr/src/usr.bin/Makefile.orig	Thu Apr 21 19:29:48 2016
+--- /usr/src/usr.bin/Makefile	Thu Apr 21 19:30:09 2016
+***************
+*** 94,99 ****
+--- 94,100 ----
+  	${_makewhatis} \
+  	${_man} \
+  	mandoc \
++ 	mapstat \
+  	mesg \
+  	minigzip \
+  	ministat \
