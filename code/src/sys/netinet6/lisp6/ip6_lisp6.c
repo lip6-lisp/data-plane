@@ -14,7 +14,7 @@
  * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,7 +27,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *  Contributors: 
+ *  Contributors:
  *               Luigi Iannone <ggx@openlisp.org>
  *
  * $Id: ip6_lisp6.c 178 2011-09-22 14:50:11Z ggx $
@@ -102,32 +102,43 @@ SYSCTL_DECL(_net_inet6);
 SYSCTL_NODE(_net_inet6, OID_AUTO, lisp, CTLFLAG_RW, 0, "IPv6 related LISP node");
 
 SYSCTL_STRUCT(_net_inet6_lisp, OID_AUTO, stats, CTLFLAG_RW,
-	      &lisp6stat, lispbasicstat, 
+	      &lisp6stat, lispbasicstat,
 	      "LISP IPv6 stats (struct lispbasicstat, net/lisp/lisp.h)");
 
 
-int 
+int
 lisp_ip6_mapencap( m, flags, local_map, remote_map)
         struct mbuf ** m;
 	int flags;
 	struct eidmap ** local_map;
 	struct eidmap ** remote_map;
 /*
- * The function check if it exists in the mapping table a mapping 
- * for the source EID and destination EID. 
+ * The function check if it exists in the mapping table a mapping
+ * for the source EID and destination EID.
  * Function return 0 if no error is generated.
  *
- * If source EID mapping does not exist or is a negative mapping 
- * both *local_map and *remote_map are returned as NULL. 
- * The same if a source EID mapping exists but the mapping for the 
+ * Case: XTR
+ * If source EID mapping does not exist or is a negative mapping
+ * both *local_map and *remote_map are returned as NULL.
+ * The same  if a source EID mapping exists but the mapping for the
  * destination EID is a negative mapping.
  *
- * Otherwise *local_map and *remote_map will contain pointer to an eidmap 
+ * Case: RTR
+ * If destination EID mapping does not exist or is a negative mapping
+ * both *local_map and *remote_map are returned as NULL.
+ * The same  if a destination EID mapping is a negative mapping.
+ *
+ * Case: PxTR
+ * If destination EID mapping does not exist or is a negative mapping
+ * both *local_map and *remote_map are returned as NULL.
+ * If destination EID mapping is a negative mapping, *remote_map is returned as NULL.
+ *
+ * Otherwise *local_map and *remote_map will contain pointer to an eidmap
  * structure containing the mapping.
  *
  * Note that in this latter case *remote_map can be NULL
  * since it is just the case of a cache miss.
- * Whether to do dataprobe or not is up to lisp6_output (or the 
+ * Whether to do dataprobe or not is up to lisp_output (or the
  * consumer of the result).
  */
 {
@@ -136,7 +147,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 	struct eidmap * remotemap = NULL;
 	struct map_addrinfo info;
 	int err = 0;
-	
+
         if (flags & IP_LISP) {
 	       /* The packet has already been LISP-encapsulated:
 		*/
@@ -148,7 +159,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
        /* Source address validation */
         if (IN6_IS_ADDR_UNSPECIFIED(&ip6->ip6_src) &&
 	    (flags & IPV6_UNSPECSRC) == 0) {
-	       /* Source Address not yet defined, encapsulation not 
+	       /* Source Address not yet defined, encapsulation not
 		* possible.
 		*/
 
@@ -170,7 +181,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 	   PXTR only encap if destination EID exist in Forward database */
 	switch (lispfunc) {
 		case LISP_XTR:
-			((struct sockaddr_in6 *)&(localmap->eid))->sin6_addr = ip6->ip6_src;	
+			((struct sockaddr_in6 *)&(localmap->eid))->sin6_addr = ip6->ip6_src;
 			break;
 		case LISP_PXTR:
 		case LISP_RTR:
@@ -178,12 +189,12 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 			break;
 	}
 	//((struct sockaddr_in6 *)&(localmap->eid))->sin6_addr = ip6->ip6_src;
-	/*DPC*/	
+	/*DPC*/
 
 	dblookup(localmap);
-  	  
+
 	if (localmap->mapping  &&
-	    !(localmap->mapping->map_flags & MAPF_NEGATIVE) && 
+	    !(localmap->mapping->map_flags & MAPF_NEGATIVE) &&
 	    ((lispfunc == LISP_XTR)? !IN6_ARE_MASKED_ADDR_EQUAL(
 					 &(((struct sockaddr_in6 *)(map_key(localmap->mapping)))->sin6_addr) ,  &(ip6->ip6_dst),
 
@@ -191,11 +202,11 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 						!IN6_ARE_MASKED_ADDR_EQUAL(
 					 &(((struct sockaddr_in6 *)(map_key(localmap->mapping)))->sin6_addr) ,  &(ip6->ip6_src),
 
-					 &(((struct sockaddr_in6 *)(map_mask(localmap->mapping)))->sin6_addr)) )) { 
+					 &(((struct sockaddr_in6 *)(map_mask(localmap->mapping)))->sin6_addr)) )) {
 
 	       /* There is a mapping for the source EID and
 		* destination is not in the same address range
-		* of source, thus now look for the 
+		* of source, thus now look for the
 		* destination EID mapping.
 		*/
 
@@ -207,12 +218,12 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 		        FREE_EIDMAP(localmap);
 			return ENOBUFS;
 		};
-  			   
+
 	        bzero(remotemap, sizeof(struct eidmap));
 	        remotemap->eid.ss_family = AF_INET6;
   		remotemap->eid.ss_len = sizeof(struct sockaddr_in6);
 		((struct sockaddr_in6 *)&(remotemap->eid))->sin6_addr = ip6->ip6_dst;
-  
+
 		cachelookup(remotemap);
 
 		if (remotemap->mapping  == NULL)  {
@@ -220,7 +231,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 			* roll back like no mapping was present and
 			* notify a cache miss.
 			* Just leave the localmap to be used in the lisp_output
-			* in case dataprobe will ever be implemented.  
+			* in case dataprobe will ever be implemented.
 			*/
 
 		        bzero(&info, sizeof(struct map_addrinfo));
@@ -232,17 +243,19 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 		        free(remotemap, M_TEMP);
 			remotemap = NULL;
 
-		} else if (remotemap->mapping->map_flags & MAPF_NEGATIVE) { 
-		       /* There is a negative mapping rollback to 
-			* no mappings foud at all. This way ip_output 
+		} else if (remotemap->mapping->map_flags & MAPF_NEGATIVE) {
+		       /* There is a negative mapping rollback to
+			* no mappings foud at all. This way ip_output
 			* will try to forward the packet natively.
 			*/
 
 		        free(remotemap, M_TEMP);
 			remotemap = NULL;
 
-			free(localmap, M_TEMP);
-			localmap = NULL;
+			if (lispfunc != LISP_PXTR) {
+			        free(localmap, M_TEMP);
+			        localmap = NULL;
+                        }
 
 		};
 
@@ -254,7 +267,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 
 	};
 
-	/* Hand back references to mappings. 
+	/* Hand back references to mappings.
 	 */
 	*local_map = localmap;
 	*remote_map = remotemap;
@@ -264,7 +277,7 @@ lisp_ip6_mapencap( m, flags, local_map, remote_map)
 } /* lisp_ip6_mapencap() */
 
 
-int 
+int
 lisp_ip6_needdecap( m, off, proto)
 	register struct mbuf **m;
 	int off;
@@ -272,7 +285,7 @@ lisp_ip6_needdecap( m, off, proto)
 {
         /* Check whether the received packet is an IPv6 LISP packet.
 	 * Means UDP + specific LISPDATA port number.
-	 * Returns 1 if it is the case otherwise 0. Error conditions 
+	 * Returns 1 if it is the case otherwise 0. Error conditions
 	 * must be handled by the caller, usually ip6_input().
 	 */
 
@@ -280,7 +293,7 @@ lisp_ip6_needdecap( m, off, proto)
 	struct ip6_hdr *ip6;
 
 	if (proto != IPPROTO_UDP) {
-	       /* It is not UDP packet, thus not a LISP packet 
+	       /* It is not UDP packet, thus not a LISP packet
 		*/
 	       return 0;
 	};
@@ -289,7 +302,7 @@ lisp_ip6_needdecap( m, off, proto)
 	IP6_EXTHDR_CHECK((*m), off, sizeof(struct udphdr), IPPROTO_DONE);
 	ip6 = mtod((*m), struct ip6_hdr *);
 	uh = (struct udphdr *)((caddr_t)ip6 + off);
-#else	
+#else
 
 	IP6_EXTHDR_GET(uh, struct udphdr *, (*m), off, sizeof(*uh));
         if (!uh) {
@@ -313,7 +326,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
         register struct mbuf ** m;
 	struct sockaddr_storage * drloc;
 	struct sockaddr_storage * srloc;
-	struct lispshimhdr * lisphdr; 
+	struct lispshimhdr * lisphdr;
 {
 
         struct eidmap local_map, remote_map;
@@ -322,7 +335,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 	struct locator * dstrloc = NULL;
 	struct map_addrinfo info;
 	int error = 0;
-	
+
        /* Not necessary, but just in case
 	*/
 	(*m) = m_pullup((*m), sizeof(struct ip6_hdr));
@@ -337,7 +350,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
         bzero(&local_map, sizeof(local_map));
 	local_map.eid.ss_family = AF_INET6;
 	local_map.eid.ss_len = sizeof(struct sockaddr_in6);
-	
+
 	/*PCD*/
 	switch (lispfunc) {
 		case LISP_XTR:
@@ -352,16 +365,16 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 	/*DPC*/
 
 	/* Checkout for local mapping */
-	dblookup(&local_map); 	   
+	dblookup(&local_map);
 
 	if (!local_map.mapping) {
-	      /* Received a LISP packet but this is not the 
-	       * correct ETR so drop it. 
-	       * We assume that local mapping are always present 
+	      /* Received a LISP packet but this is not the
+	       * correct ETR so drop it.
+	       * We assume that local mapping are always present
 	       * in the maptable, thus this is either an error or
 	       * a spoof.
 	       */
-		  
+
 #ifdef LISP_DEBUG
 	        DEBUGLISP("[LISP_CHECK_IP6_MAPPINGS] Drop! No Mapping in DB\n");
 #endif /* LISP_DEBUG */
@@ -372,7 +385,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 
 	if ( !(dstrloc = map_findrloc(local_map.mapping, drloc)) ) {
 	       /* RLOC not present in the mapping
-		* This should really never happen if the local mappings 
+		* This should really never happen if the local mappings
 		* are checked before insertion in the maptable.
 		* --- Panic?
 		*/
@@ -386,7 +399,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 		lisp6stat.ibadencap++;
 	        return(ENOATTR);
 	};
-		  
+
 	/*
 	 * Construct eidmap for remote map.
 	 * Stuff source address in the structure.
@@ -399,7 +412,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 
 
 	/* Checkout for mapping */
-	cachelookup(&remote_map); 	   
+	cachelookup(&remote_map);
 
 	if (remote_map.mapping && !(remote_map.mapping->map_flags & MAPF_NEGATIVE)) {
 	       /* Got a mapping in the Cache
@@ -409,7 +422,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 		       /* RLOC not present in the mapping present in cache.
 			* --- Should send msg through map socket?
 			*/
-		  
+
 		        MAP_REMREF(local_map.mapping);
 			MAP_REMREF(remote_map.mapping);
 
@@ -491,14 +504,14 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 
 
 
-	if (check_lisphdr( lisphdr, local_map, remote_map, dstrloc, 
+	if (check_lisphdr( lisphdr, local_map, remote_map, dstrloc,
 			   srcrloc, &error)) {
 
 	        MAP_REMREF(local_map.mapping);
 
-	        if (remote_map.mapping) 
+	        if (remote_map.mapping)
 		        MAP_REMREF(remote_map.mapping);
-	     
+
 #ifdef LISP_DEBUG
 	        DEBUGLISP("[LISP_CHECK_IP_MAPPINGS] Drop! LISP Header\n");
 #endif /* LISP_DEBUG */
@@ -506,11 +519,11 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 		lisp6stat.ibadencap++;
 
 		if ( error == ELISP_SRCVNUMINVAL ) {
-		 
+
 		        lisp6stat.ibadsrcvnum++;
 
 		} else if ( error == ELISP_DSTVNUMINVAL ) {
-		 
+
 		        lisp6stat.ibaddstvnum++;
 
 		};
@@ -521,7 +534,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 
 	MAP_REMREF(local_map.mapping);
 
-	if (remote_map.mapping)  
+	if (remote_map.mapping)
 	        MAP_REMREF(remote_map.mapping);
 
 	return 0; /* Everything's fine */
@@ -529,7 +542,7 @@ lisp_check_ip6_mappings(m, drloc, srloc, lisphdr)
 }  /* lisp_check_ip6_mappings() */
 
 
-/* int 
+/* int
 lisp_ip6_encap( m, len, srlocaddr, drlocaddr, hlim, usport, udport)
         struct mbuf ** m;
 	int len;
@@ -539,7 +552,7 @@ lisp_ip6_encap( m, len, srlocaddr, drlocaddr, hlim, usport, udport)
 	uint16_t usport;
 	uint16_t udport;
 { */
-int 
+int
 lisp_ip6_encap(struct mbuf ** m,
 				int len,
 				struct in6_addr * srlocaddr,
@@ -549,18 +562,18 @@ lisp_ip6_encap(struct mbuf ** m,
 				uint16_t udport)
 {
        /*
-	* Calculate data length and get a mbuf for UDP, 
-	* IP, and possible link-layer headers.  
+	* Calculate data length and get a mbuf for UDP,
+	* IP, and possible link-layer headers.
 	* Immediate slide the data pointer back forward
 	* since we won't use that space at this layer.
 	*/
-  
+
         uint32_t ulen = (*m)->m_pkthdr.len;
-	uint32_t plen = sizeof(struct udphdr) + ulen;        
-	struct udphdr * uh = NULL;        
+	uint32_t plen = sizeof(struct udphdr) + ulen;
+	struct udphdr * uh = NULL;
 	struct ip6_hdr * ip6 = NULL;
- 
-	M_PREPEND((*m), sizeof(struct ip6_hdr) + 
+
+	M_PREPEND((*m), sizeof(struct ip6_hdr) +
 		  sizeof(struct udphdr), M_DONTWAIT);
 
 	if ((*m) == 0) {
@@ -590,16 +603,16 @@ lisp_ip6_encap(struct mbuf ** m,
        /* GgX:
 	* draft-ietf-lisp-04.txt does not specify values
 	* to be used for the "Traffic Class" and the "Flow Label"
-	* fields. 
-	* 
+	* fields.
+	*
 	* We just set them to 0.
 	*
-	* Note also that copy these information from the inner header 
+	* Note also that copy these information from the inner header
 	* works only in the case of IPv6-over-IPv6. Furthermore,
 	* copying back these information can raise similar problems
-	* like in the udp source port, when a state-full firewall is 
+	* like in the udp source port, when a state-full firewall is
 	* present.
-	*   
+	*
 	*/
 
 	ip6->ip6_vfc	&= ~IPV6_VERSION_MASK;
@@ -629,7 +642,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 	int plen, ulen, saved_hlim;
 	struct sockaddr_storage srloc,drloc;
 	struct ip * ip = NULL;
-	int error = 0;  
+	int error = 0;
 	int isr = 0;
 	uint16_t delta_ttl;
 	struct lispshimhdr rlisphdr;
@@ -637,7 +650,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 	lisp6stat.ipackets++;
 
 	ip6 = mtod(m, struct ip6_hdr *);
- 
+
 #ifndef PULLDOWN_TEST
 	IP6_EXTHDR_CHECK(m, off, sizeof(struct udphdr), IPPROTO_DONE);
 	ip6 = mtod(m, struct ip6_hdr *);
@@ -650,8 +663,8 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 
 	plen = ntohs(ip6->ip6_plen) - off + sizeof(struct ip6_hdr);
 	ulen = ntohs((u_short)uh->uh_ulen);
-	
-	/* This is used for packet length check assuming that there is at 
+
+	/* This is used for packet length check assuming that there is at
 	 * least an IPv4 header inside the encapsulation.
 	 */
 
@@ -661,7 +674,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 	}
 
 
-	if (ulen <= (sizeof(struct udphdr) + sizeof(struct lispshimhdr) 
+	if (ulen <= (sizeof(struct udphdr) + sizeof(struct lispshimhdr)
 		     + sizeof(struct ip))) {
 
 #ifdef LISP_DEBUG
@@ -672,7 +685,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 		goto lisp6_input_drop;
 	}
 
-	/* Before really stripping the outer header save RLOCs for 
+	/* Before really stripping the outer header save RLOCs for
 	 * further checks.
 	 */
 	drloc.ss_family = srloc.ss_family = AF_INET6;
@@ -680,7 +693,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 	((struct sockaddr_in6 *)&drloc)->sin6_addr = ip6->ip6_dst;
 	((struct sockaddr_in6 *)&srloc)->sin6_addr = ip6->ip6_src;
 
-	/* Save the value of the TTL in order to copy it back in the 
+	/* Save the value of the TTL in order to copy it back in the
 	 * inner header.
 	 */
 	saved_hlim= ip6->ip6_hlim;
@@ -698,12 +711,12 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 	ip = mtod(m, struct ip *);
 
 	switch (ip->ip_v) {
-	
+
 	case IPVERSION:
 
 	        lisp4stat.ioafpackets++;
 
-	        error = lisp_check_ip_mappings( &m, &drloc, &srloc, 
+	        error = lisp_check_ip_mappings( &m, &drloc, &srloc,
 						&rlisphdr );
 
 		if (error)
@@ -712,36 +725,36 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 		delta_ttl = ip->ip_ttl - saved_hlim;
 		ip->ip_ttl = (u_char) saved_hlim;
 
-	       /* Update Checksum due to TTL recalculation 
+	       /* Update Checksum due to TTL recalculation
 		*/
 		if (ip->ip_sum >= (u_int16_t) ~htons(delta_ttl << 8))
 		        ip->ip_sum -= ~htons(delta_ttl << 8);
 		else
 		        ip->ip_sum += htons(delta_ttl << 8);
 
- 	
+
  	        isr = NETISR_IP;
 
 		break;
 
 	case (IPV6_VERSION >> 4):
 
-	        error = lisp_check_ip6_mappings( &m, &drloc, &srloc, 
+	        error = lisp_check_ip6_mappings( &m, &drloc, &srloc,
 						 &rlisphdr );
 
 		if (error)
 		        goto lisp6_input_drop;
 
 		ip6 = mtod(m, struct ip6_hdr *);
-		
+
 		ip6->ip6_hlim = saved_hlim;
-		
+
  	        isr = NETISR_IPV6;
 
 		break;
 
 	default:
-	  
+
 #ifdef LISP_DEBUG
 	        DEBUGLISP("[LISP6_INPUT] Drop! Unrecongnized inner packet AF\n");
 #endif /* LISP_DEBUG */
@@ -755,7 +768,7 @@ lisp6_input(struct mbuf **mp, int *offp, int proto)
 
 	return (IPPROTO_DONE);
 
-lisp6_input_drop:	
+lisp6_input_drop:
 
 	if (m)
 		m_freem(m);
@@ -770,8 +783,8 @@ int
 lisp6_output(m, hlen, local_map, remote_map)
 	struct mbuf *m;
 	int hlen;
-        struct eidmap *local_map;        
-        struct eidmap *remote_map;        
+        struct eidmap *local_map;
+        struct eidmap *remote_map;
 {
 
         register int len = m->m_pkthdr.len;
@@ -793,19 +806,19 @@ lisp6_output(m, hlen, local_map, remote_map)
 
 	         lisp6stat.omissdrops++;
 		 goto lisp6_output_drop;
-		 
+
 	};
 
 
-       /* Fix the IP header before going further, then 
+       /* Fix the IP header before going further, then
 	* encapsulate.
 	*/
-	
+
 	if (m->m_pkthdr.csum_flags & CSUM_DELAY_DATA) {
 	        in_delayed_cksum(m);
 		m->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA;
 	};
-  	
+
 	ip6->ip6_plen = htons((len - sizeof(struct ip6_hdr)));
 
 	/* Save original TTL value to copy it back in the new outer header.
@@ -815,37 +828,37 @@ lisp6_output(m, hlen, local_map, remote_map)
 
 	/* Destination RLOC selection */
 	if ((error = map_select_dstrloc(remote_map->mapping, &dstrloc))) {
-	       /* There is no available RLOC that can be used 
+	       /* There is no available RLOC that can be used
 		*/
 
 	        lisp6stat.onorlocdrops++;
 	        goto lisp6_output_drop;
 
 	};
-	
-	/* If the MTU of the destination locator is set a check on 
+
+	/* If the MTU of the destination locator is set a check on
 	 * the size is performed.
 	 */
 	if (dstrloc->rloc_metrix.rlocmtx.mtu &&
-	    ((len + sizeof(struct udphdr) + 
+	    ((len + sizeof(struct udphdr) +
 	      SIZEOF_IPHDR(dstrloc->rloc_addr->ss_family) +
 	      sizeof(struct lispshimhdr)) > dstrloc->rloc_metrix.rlocmtx.mtu )) {
-		  
+
 	        error = EMSGSIZE;
 	        lisp6stat.osizedrops++;
 		goto lisp6_output_drop;
-	   
-	};
-		
 
-	/* Source RLOC selection 
+	};
+
+
+	/* Source RLOC selection
 	 * Must match the destination RLOC AF (drloc_af)
-	 * and also be the address of the interface through which 
-	 * the packet will be sent 
+	 * and also be the address of the interface through which
+	 * the packet will be sent
 	 */
-	if ((error = map_select_srcrloc(local_map->mapping, dstrloc, 
+	if ((error = map_select_srcrloc(local_map->mapping, dstrloc,
 					&srcrloc))) {
-	       /* There is no available RLOC that can be used. 
+	       /* There is no available RLOC that can be used.
 		*/
 
 	        lisp6stat.onorlocdrops++;
@@ -857,8 +870,8 @@ lisp6_output(m, hlen, local_map, remote_map)
 	 * is performed.
 	 */
 	if (srcrloc->rloc_metrix.rlocmtx.mtu &&
-	    ((len + sizeof(struct udphdr) + 
-	      SIZEOF_IPHDR(srcrloc->rloc_addr->ss_family) + 
+	    ((len + sizeof(struct udphdr) +
+	      SIZEOF_IPHDR(srcrloc->rloc_addr->ss_family) +
 	      sizeof(struct lispshimhdr)) > srcrloc->rloc_metrix.rlocmtx.mtu)) {
 
 		error = EMSGSIZE;
@@ -866,11 +879,11 @@ lisp6_output(m, hlen, local_map, remote_map)
 		goto lisp6_output_drop;
 
 	};
-	
 
-	/* Global IPv6 MTU check 
+
+	/* Global IPv6 MTU check
 	 */
-	if (len + sizeof(struct udphdr) + 
+	if (len + sizeof(struct udphdr) +
 	    SIZEOF_IPHDR(srcrloc->rloc_addr->ss_family) +
 	    sizeof(struct lispshimhdr) > IPV6_MAXPACKET) {
 
@@ -879,7 +892,7 @@ lisp6_output(m, hlen, local_map, remote_map)
 		goto lisp6_output_drop;
 
 	};
-	
+
 	/* Ready to encapsulate.
 	 * Before do it let's calculate the src port
 	 * Src port is hash based on the inner header.
@@ -903,24 +916,24 @@ lisp6_output(m, hlen, local_map, remote_map)
 
 
 	switch (srcrloc->rloc_addr->ss_family) {
-	  
-	        case AF_INET:	 
-	
+
+	        case AF_INET:
+
 		        lisp4stat.ooafpackets++;
 
 		        if ( !(error = lisp_ip_encap(&m,
-						     (len + sizeof(struct lispshimhdr)), 
-						     &((struct sockaddr_in *)srcrloc->rloc_addr)->sin_addr, 	     
-						     &((struct sockaddr_in *)dstrloc->rloc_addr)->sin_addr, 	     
+						     (len + sizeof(struct lispshimhdr)),
+						     &((struct sockaddr_in *)srcrloc->rloc_addr)->sin_addr,
+						     &((struct sockaddr_in *)dstrloc->rloc_addr)->sin_addr,
 						     ((u_char) saved_hlim),
 						     usrcport,
 						     udstport))){
-			
+
 		                lisp4stat.opackets++;
 				error = ip_output(m, NULL, NULL, IP_LISP, NULL, NULL);
 
 			};
-			
+
 			FREE_EIDMAP(local_map);
 			FREE_EIDMAP(remote_map);
 
@@ -930,14 +943,14 @@ lisp6_output(m, hlen, local_map, remote_map)
 
                  case AF_INET6:
 
-		        if ( !(error = lisp_ip6_encap(&m, 
-						      (len + sizeof(struct lispshimhdr)), 
-						     &((struct sockaddr_in6 *)srcrloc->rloc_addr)->sin6_addr, 	     
-						     &((struct sockaddr_in6 *)dstrloc->rloc_addr)->sin6_addr, 
+		        if ( !(error = lisp_ip6_encap(&m,
+						      (len + sizeof(struct lispshimhdr)),
+						     &((struct sockaddr_in6 *)srcrloc->rloc_addr)->sin6_addr,
+						     &((struct sockaddr_in6 *)dstrloc->rloc_addr)->sin6_addr,
 						      saved_hlim,
 						      usrcport,
 						      udstport))) {
-			
+
 		                lisp6stat.opackets++;
 				error = ip6_output(m, NULL, NULL, IP_LISP, NULL, NULL, NULL);
 
@@ -952,8 +965,8 @@ lisp6_output(m, hlen, local_map, remote_map)
 
 	         default:
 	 	        error = EPFNOSUPPORT;
-	};  
-	
+	};
+
 
 lisp6_output_drop:
 
@@ -968,8 +981,6 @@ lisp6_output_drop:
 	lisp6stat.odrops++;
 	lisp6stat.opackets++;
 
-	return (error); 
+	return (error);
 
 }   /* lisp6_output() */
-
-
